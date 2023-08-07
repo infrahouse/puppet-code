@@ -50,7 +50,6 @@ jobs:
                 OS_VERSION=${{ matrix.codename }} make package
 
             - name: Publish Debian package
-              if: env.PUBLISH == 'yes'
               run: |
                   ih-s3-reprepro \
                     --debug \
