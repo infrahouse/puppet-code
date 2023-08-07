@@ -34,7 +34,8 @@ hooks:
 	test -f .git/hooks/pre-commit || cp hooks/pre-commit .git/hooks/pre-commit
 
 bootstrap:
-	apt-get -y install devscripts
+	apt-get -y install devscripts \
+		debhelper
 
 all:
 	@echo "Nothing to build"
