@@ -30,12 +30,7 @@ jobs:
             - uses: actions/checkout@v3
             - name: Install dependencies
               run: |
-                mkdir -p /etc/apt/cloud-init.gpg.d/
-                curl -s https://release-jammy.infrahouse.com/DEB-GPG-KEY-release-jammy.infrahouse.com | gpg --dearmor > /etc/apt/cloud-init.gpg.d/infrahouse.gpg
-                echo "deb [signed-by=/etc/apt/cloud-init.gpg.d/infrahouse.gpg] https://release-jammy.infrahouse.com/ jammy main" > /etc/apt/sources.list.d/infrahouse.list
-                apt-get update
-                make bootstrap
-                sudo apt-get -y install infrahouse-toolkit reprepro gpg s3fs
+                sudo bash support/install_deps.sh
 
             - name: Configure AWS Credentials
               uses: aws-actions/configure-aws-credentials@v2
