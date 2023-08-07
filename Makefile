@@ -29,6 +29,10 @@ INSTALL_DIR = "/opt/puppet-code"
 help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
+.PHONY: hooks
+hooks:
+	test -f .git/hooks/pre-commit || cp hooks/pre-commit .git/hooks/pre-commit
+
 all:
 	@echo "Nothing to build"
 
@@ -39,15 +43,4 @@ install:
 
 .PHONY: package
 package:
-	tar
-
-
-.PHONY: package-manual
-package-manual:
-	docker run \
-	-v ${PWD}:/puppet-code \
-	-it \
-	--name puppet-code-builder \
-	--rm \
-	"twindb/omnibus-ubuntu:${OS_VERSION}" \
-	bash -l
+	bash support/package.sh

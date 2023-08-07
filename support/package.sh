@@ -16,6 +16,4 @@ mkdir "${TMPDIR}/puppet-code_${upstream_version}"
 cp -R environments modules LICENSE README.md "${TMPDIR}/puppet-code_${upstream_version}"
 
 tar zcf "../puppet-code_${upstream_version}.orig.tar.gz" -C "${TMPDIR}" "puppet-code_${upstream_version}"
-#debuild --build=all -us -uc
-
-debuild -us -uc
+debuild --build=all -us -uc
