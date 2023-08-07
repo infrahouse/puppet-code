@@ -1,0 +1,16 @@
+Source: puppet-code
+Priority: optional
+Maintainer: Oleksandr Kuzminskyi <aleks@infrahouse.com>
+Build-Depends: debhelper-compat (= 12)
+Standards-Version: 4.4.1
+Section: admin
+Homepage: https://infrahouse.com
+Vcs-Browser: https://github.com/infrahouse/puppet-code
+Vcs-Git: https://github.com/infrahouse/puppet-code.git
+
+Package: puppet-code
+Architecture: all
+Depends: puppet-agent
+Description: InfraHouse Puppet Roles and Profiles
+ Puppet is the second layer of provisioining in InfraHouse.
+ This package contains all puppet manifests, modules and hiera files.

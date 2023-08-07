@@ -1,0 +1,68 @@
+# This workflow will upload a Puppet Code Package when a new commit to main is pushed
+---
+name: Puppet Code Continuous Deployment
+
+on:  # yamllint disable-line rule:truthy
+    push:
+        branches: ["main"]
+    workflow_dispatch:
+        inputs:
+            debug_enabled:
+                type: "boolean"
+                description: "Setup a temporary SSH access if a test fails"
+                required: false
+                default: false
+
+permissions:
+    id-token: write  # This is required for requesting the JWT
+    contents: read
+
+env:
+    ROLE_ARN: "arn:aws:iam::493370826424:role/puppet-code-github"
+
+jobs:
+    deploy:
+        runs-on: ubuntu-22.04
+        strategy:
+            matrix:
+                codename: ["focal", "jammy"]
+        steps:
+            - uses: actions/checkout@v3
+            - name: Install dependencies
+              run: |
+                mkdir -p /etc/apt/cloud-init.gpg.d/
+                curl -s https://release-jammy.infrahouse.com/DEB-GPG-KEY-release-jammy.infrahouse.com | gpg --dearmor > /etc/apt/cloud-init.gpg.d/infrahouse.gpg
+                echo "deb [signed-by=/etc/apt/cloud-init.gpg.d/infrahouse.gpg] https://release-jammy.infrahouse.com/ jammy main" > /etc/apt/sources.list.d/infrahouse.list
+                apt-get update
+                make bootstrap
+                sudo apt-get -y install infrahouse-toolkit reprepro gpg s3fs
+
+            - name: Configure AWS Credentials
+              uses: aws-actions/configure-aws-credentials@v2
+              with:
+                  role-to-assume: ${{ env.ROLE_ARN }}
+                  role-session-name: github-action-puppet-code-cd
+                  aws-region: ${{ secrets.AWS_DEFAULT_REGION }}
+
+            - name: "Setup tmate session"
+              uses: "mxschmitt/action-tmate@v3"
+              if: "${{ github.event_name == 'workflow_dispatch' && inputs.debug_enabled }}"
+              with:
+                  limit-access-to-actor: true
+
+            - name: Build package
+              run: |
+                OS_VERSION=${{ matrix.codename }} make package
+
+            - name: Publish Debian package
+              if: env.PUBLISH == 'yes'
+              run: |
+                  ih-s3-reprepro \
+                    --debug \
+                    --aws-region ${{ secrets.AWS_DEFAULT_REGION }} \
+                    --bucket infrahouse-release-${{ matrix.codename }} \
+                    --gpg-key-secret-id packager-key-${{ matrix.codename }} \
+                    --gpg-passphrase-secret-id packager-passphrase-${{ matrix.codename }} \
+                    includedeb \
+                    ${{ matrix.codename }} \
+                    ../puppet-code_*.deb

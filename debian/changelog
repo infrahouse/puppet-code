@@ -1,0 +1,24 @@
+puppet-code (0.1.0-1build3) jammy; urgency=medium
+
+  * commit event. see changes history in git log
+
+ -- Oleksandr Kuzminskyi <aleks@infrahouse.com>  Mon, 07 Aug 2023 10:24:03 -0700
+
+puppet-code (0.1.0-1build2) jammy; urgency=medium
+
+  * commit event. see changes history in git log
+
+ -- Oleksandr Kuzminskyi <aleks@infrahouse.com>  Mon, 07 Aug 2023 09:45:52 -0700
+
+puppet-code (0.1.0-1build1) jammy; urgency=medium
+
+  * main branch commit
+
+ -- Oleksandr Kuzminskyi <aleks@infrahouse.com>  Mon, 07 Aug 2023 07:43:56 -0700
+
+puppet-code (0.1.0-1) jammy; urgency=medium
+
+  [ Oleksandr Kuzminskyi ]
+  * Initial release
+
+ -- MediaPC <aleks@MediaPC.localdomain>  Mon, 07 Aug 2023 07:28:29 -0700
