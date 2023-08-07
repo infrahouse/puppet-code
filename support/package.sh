@@ -5,6 +5,9 @@ set -eux
 upstream_version=$(head -1 debian/changelog | awk '{ print $2 }' | sed -e 's/[()]//g' | awk -F- '{ print $1 }')
 TMPDIR=$(mktemp -d)
 
+DEBEMAIL=${DEBEMAIL-packager@infrahouse.com}
+DEBFULLNAME=${DEBFULLNAME-InfraHouse Packager}
+
 cleanup () {
   rm -rf "${TMPDIR}"
 }
