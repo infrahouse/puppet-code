@@ -1,4 +1,4 @@
-class profile::apt () {
+class profile::repos () {
   class { 'apt':
     update => {
       frequency => 'daily',
