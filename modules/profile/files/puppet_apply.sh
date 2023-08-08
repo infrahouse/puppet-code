@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 
 set -eux
+source /etc/profile.d/puppet-agent.sh
 
 environment=$(facter -p puppet_environment)
 root_dir="/opt/puppet-code"
