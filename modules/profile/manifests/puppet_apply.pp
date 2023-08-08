@@ -7,6 +7,11 @@ class profile::puppet_apply () {
     owner  => 'root',
 
   }
+
+  package { 'puppet-code':
+    ensure => latest
+  }
+
   $m = fqdn_rand(30)
   cron { 'puppet_apply':
     command => $puppet_apply_binary,
@@ -14,6 +19,7 @@ class profile::puppet_apply () {
     minute  => [$m, $m + 30],
     require => [
       File[$puppet_apply_binary],
+      Package['puppet-code'],
     ]
   }
 
