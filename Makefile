@@ -31,7 +31,7 @@ help:
 
 .PHONY: hooks
 hooks:
-	test -f .git/hooks/pre-commit || cp hooks/pre-commit .git/hooks/pre-commit
+	test -L .git/hooks/pre-commit || ln -fs ../../hooks/pre-commit .git/hooks/pre-commit
 
 bootstrap:
 	apt-get -y install devscripts \

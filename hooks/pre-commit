@@ -1,2 +1,10 @@
+#!/usr/bin/env bash
+set -eux
+
+for module in modules/profile modules/role
+do
+  puppet-lint --fail-on-warnings $module
+done
+
 dch --distribution jammy -R "commit event. see changes history in git log"
 git add debian/changelog
