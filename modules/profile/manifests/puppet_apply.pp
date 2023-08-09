@@ -6,11 +6,11 @@ class profile::puppet_apply () {
 
   $m = fqdn_rand(30)
   cron { 'puppet_apply':
-    command => 'ih-puppet apply',
+    command     => 'ih-puppet apply',
     environment => 'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
-    user    => 'root',
-    minute  => [$m, $m + 30],
-    require => [
+    user        => 'root',
+    minute      => [$m, $m + 30],
+    require     => [
       Package['puppet-code'],
       Package['infrahouse-toolkit']
     ]
