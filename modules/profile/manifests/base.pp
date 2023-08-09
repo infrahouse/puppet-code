@@ -1,3 +1,4 @@
+# @summary: Base profile to be included by all roles.
 class profile::base () {
 
   include 'profile::repos'

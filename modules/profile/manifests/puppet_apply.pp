@@ -1,3 +1,4 @@
+# @summary: Configure cron job for periodic puppet apply.
 class profile::puppet_apply () {
 
   package { 'puppet-code':
