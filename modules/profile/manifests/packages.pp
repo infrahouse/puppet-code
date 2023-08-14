@@ -3,6 +3,7 @@ class profile::packages () {
 
   package { [
     'awscli',
+    'net-tools'
   ]:
     ensure => present
   }
