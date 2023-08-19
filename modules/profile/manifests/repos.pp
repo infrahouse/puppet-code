@@ -2,7 +2,7 @@
 class profile::repos () {
   class { 'apt':
     update => {
-      frequency => 'daily',
+      frequency => 'always',
     },
   }
 }
