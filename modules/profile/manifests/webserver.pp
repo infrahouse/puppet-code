@@ -3,11 +3,21 @@ class profile::webserver () {
   include 'profile::base'
 
   package { 'nginx-core':
-    ensure => present
+    ensure => present,
   }
 
   service { 'nginx':
-    ensure => 'running'
+    ensure  => 'running',
+    require => [
+    Package['nginx-core'],
+    ]
+  }
+
+  package { 'infrahouse-com':
+    ensure  => latest,
+    require => [
+      Package['nginx-core'],
+    ]
   }
 
   file { '/var/www/html/index.html':
