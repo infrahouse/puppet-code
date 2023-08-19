@@ -19,12 +19,4 @@ class profile::webserver () {
       Package['nginx-core'],
     ]
   }
-
-  file { '/var/www/html/index.html':
-    ensure  => present,
-    source  => 'puppet:///modules/profile/index.html',
-    require => [
-      Package['nginx-core'],
-    ]
-  }
 }
