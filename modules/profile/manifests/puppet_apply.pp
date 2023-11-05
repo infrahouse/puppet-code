@@ -5,9 +5,26 @@ class profile::puppet_apply () {
     ensure => latest
   }
 
+  $ih_cmd = [
+    'ih-puppet',
+    $facts['ih-puppet']['debug'] ? {
+      true  => '--debug',
+      false => ''
+    },
+    '--environment',
+    $facts['puppet_environment'],
+    '--root-directory',
+    $facts['ih-puppet']['root-directory'],
+    '--hiera-config',
+    $facts['ih-puppet']['hiera-config'],
+    '--module-path',
+    $facts['ih-puppet']['module-path'],
+    'apply',
+  ]
+
   $m = fqdn_rand(30)
   cron { 'puppet_apply':
-    command     => 'ih-puppet apply',
+    command     => $ih_cmd.join(' '),
     environment => 'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
     user        => 'root',
     minute      => [$m, $m + 30],
@@ -16,5 +33,4 @@ class profile::puppet_apply () {
       Package['infrahouse-toolkit']
     ]
   }
-
 }
