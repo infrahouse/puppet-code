@@ -1,3 +1,9 @@
+puppet-code (0.1.0-1build26) jammy; urgency=medium
+
+  * commit event. see changes history in git log
+
+ -- Oleksandr Kuzminskyi <aleks@infrahouse.com>  Mon, 06 Nov 2023 14:02:35 -0800
+
 puppet-code (0.1.0-1build25) jammy; urgency=medium
 
   * commit event. see changes history in git log
