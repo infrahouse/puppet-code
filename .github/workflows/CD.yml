@@ -18,7 +18,7 @@ permissions:
     contents: read
 
 env:
-    ROLE_ARN: "arn:aws:iam::493370826424:role/puppet-code-github"
+    ROLE_ARN: "arn:aws:iam::493370826424:role/ih-tf-puppet-code-github"
 
 jobs:
     deploy:
