@@ -11,6 +11,6 @@ Vcs-Git: https://github.com/infrahouse/puppet-code.git
 Package: puppet-code
 Architecture: all
 Depends: puppet-agent
-Description: InfraHouse Puppet Roles and Profiles
- Puppet is the second layer of provisioining in InfraHouse.
- This package contains all puppet manifests, modules and hiera files.
+Description: InfraHouse Puppet Roles and Profiles.
+ Puppet is the second layer of provisioning in InfraHouse.
+ This package contains puppet modules.
