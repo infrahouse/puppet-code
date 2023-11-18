@@ -13,6 +13,8 @@ class profile::puppet_apply () {
     },
     '--environment',
     $facts['puppet_environment'],
+    '--environmentpath',
+    $facts['ih-puppet']['environmentpath'],
     '--root-directory',
     $facts['ih-puppet']['root-directory'],
     '--hiera-config',
