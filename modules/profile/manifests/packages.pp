@@ -1,16 +1,21 @@
 # @summary: Installs foundation packages to be expected on all hosts.
-class profile::packages () {
+class profile::packages (
+  $packages = lookup(
+    'profile::packages', undef, undef, {
+      'awscli'             => present,
+      'jq'                 => present,
+      'make'               => present,
+      'net-tools'          => present,
+      'python3'            => present,
+      'python-is-python3'  => present,
+      'python3-virtualenv' => present,
+    }
+  )
+) {
 
-  package { [
-    'awscli',
-    'jq',
-    'make',
-    'net-tools',
-    'python3',
-    'python-is-python3',
-    'python3-virtualenv'
-  ]:
-    ensure => present
+  $packages.map |$item| {
+    package { $item[0]:
+      ensure => $item[1]
+    }
   }
-
 }
