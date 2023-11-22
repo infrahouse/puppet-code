@@ -1,4 +1,4 @@
-.DEFAULT_GOAL := all
+.DEFAULT_GOAL := help
 
 define BROWSER_PYSCRIPT
 import os, webbrowser, sys
@@ -30,21 +30,25 @@ help:
 	@python -c "$$PRINT_HELP_PYSCRIPT" < $(MAKEFILE_LIST)
 
 .PHONY: hooks
-hooks:
+hooks:  ## Instance git hooks
 	test -L .git/hooks/pre-commit || ln -fs ../../hooks/pre-commit .git/hooks/pre-commit
 
-bootstrap:
+bootstrap:  ## Install dependencies
 	apt-get -y install devscripts \
 		debhelper
 
 all:
 	@echo "Nothing to build"
 
-install:
+install: ## Install the code
 	mkdir -p "${DESTDIR}${INSTALL_DIR}"
 	cp -R environments "${DESTDIR}${INSTALL_DIR}"; find "${DESTDIR}${INSTALL_DIR}/environments/" -type f -exec chmod 644 {} \;
 	cp -R modules "${DESTDIR}${INSTALL_DIR}" ; find "${DESTDIR}${INSTALL_DIR}/modules/" -type f -exec chmod 644 {} \;
 
 .PHONY: package
-package:
+package:  ## Build a deb package
 	bash support/package.sh
+
+.PHONY: docker
+docker:  ## Run a container
+	@docker run -it --rm -v $$PWD:/puppet-code -w /puppet-code ubuntu:jammy bash -l

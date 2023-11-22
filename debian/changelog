@@ -1,3 +1,7 @@
+puppet-code (0.1.0-1build34) jammy; urgency=medium
+
+  * commit event. see changes history in git log
+
 puppet-code (0.1.0-1build33) jammy; urgency=medium
 
   * commit event. see changes history in git log
