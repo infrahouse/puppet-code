@@ -1,0 +1,4 @@
+sudo::configs:
+  'admin':
+    'content'   : '%admin ALL=(ALL) NOPASSWD: ALL'
+    'priority'  : 10
