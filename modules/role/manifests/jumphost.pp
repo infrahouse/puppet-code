@@ -2,5 +2,6 @@
 class role::jumphost () {
 
   include 'profile::base'
+  include 'profile::ecs'
 
 }
