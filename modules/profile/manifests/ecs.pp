@@ -6,10 +6,15 @@ class profile::ecs () {
     ensure => latest
   }
 
+  package { 'cgroup-tools':
+    ensure => latest
+  }
+
   service { 'ecs':
     ensure  => running,
     require => [
       Package['amazon-ecs-init'],
+      Package['cgroup-tools'],
       Service['docker'],
     ]
   }
