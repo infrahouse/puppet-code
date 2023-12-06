@@ -15,9 +15,17 @@ class profile::docker () {
   stdlib::ensure_packages(['gnupg', 'curl', 'ca-certificates'])
 
   # Repo
+  file { '/etc/apt/keyrings':
+    ensure => directory,
+    mode   => '0755',
+  }
+
   file { '/etc/apt/keyrings/docker.gpg':
-    source => 'puppet:///modules/profile/docker.gpg',
-    mode   => 'a+r'
+    source  => 'puppet:///modules/profile/docker.gpg',
+    mode    => 'a+r',
+    require => [
+      File['/etc/apt/keyrings']
+    ]
   }
 
   file { '/etc/apt/sources.list.d/docker.list':
