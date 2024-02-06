@@ -1,0 +1,22 @@
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+network.host: _ec2_
+
+node.roles: [ master, data ]
+
+cluster.initial_master_nodes: <%= @facts['ec2_metadata']['local-ipv4'] %>
+#cluster.initial_master_nodes: 10.1.0.124
+
+discovery.seed_providers: ec2
+discovery.ec2.tag.cluster: elastic
+discovery.ec2.tag.environment: development
+# discovery.ec2.availability_zones: us-east-2a, us-east-2b, us-east-2c
+
+xpack.security.enabled: false
+xpack.security.autoconfiguration.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+logger.org.elasticsearch.discovery.ec2: "TRACE"
