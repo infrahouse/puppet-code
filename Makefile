@@ -61,8 +61,8 @@ bumpversion:
 		debhelper; \
 		DEBEMAIL=packager@infrahouse.com dch --distribution jammy -R 'commit event. see changes history in git log'"
 
-.PHONY: test
-test:
+.PHONY: test-puppet
+test-puppet:
 	sudo ih-puppet \
      --environment development \
      --environmentpath {root_directory}/environments \
