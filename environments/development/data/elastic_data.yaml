@@ -1,0 +1,7 @@
+---
+classes:
+  - role::elastic_data
+
+accounts::user_list:
+  ubuntu:
+    group: 'admin'
