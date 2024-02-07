@@ -52,3 +52,13 @@ package:  ## Build a deb package
 .PHONY: docker
 docker:  ## Run a container
 	@docker run -it --rm -v $$PWD:/puppet-code -w /puppet-code ubuntu:jammy bash -l
+
+
+.PHONY: test
+test:
+	sudo ih-puppet \
+     --environment development \
+     --environmentpath {root_directory}/environments \
+     --root-directory /home/ubuntu/code/puppet-code \
+     --hiera-config {root_directory}/environments/{environment}/hiera.yaml \
+     --module-path {root_directory}/modules apply
