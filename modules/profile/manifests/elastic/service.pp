@@ -10,11 +10,11 @@ class profile::elastic::service () {
   }
 
   service { 'elasticsearch':
-    ensure  => running,
+    ensure    => running,
     subscribe => [
       File['/etc/elasticsearch/elasticsearch.yml'],
     ],
-    require => [
+    require   => [
       File['/etc/elasticsearch/elasticsearch.yml'],
     ]
   }

@@ -54,6 +54,13 @@ docker:  ## Run a container
 	@docker run -it --rm -v $$PWD:/puppet-code -w /puppet-code ubuntu:jammy bash -l
 
 
+.PHONY: bumpversion
+bumpversion:
+	@docker run --rm -v $$PWD:/puppet-code -w /puppet-code ubuntu:jammy bash -c "apt-get update; \
+		apt-get -y install devscripts \
+		debhelper; \
+		DEBEMAIL=packager@infrahouse.com dch --distribution jammy -R 'commit event. see changes history in git log'"
+
 .PHONY: test
 test:
 	sudo ih-puppet \
