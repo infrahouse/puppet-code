@@ -7,6 +7,10 @@ class profile::elastic::repo () {
     notify => Exec['update-elastic-sign-key']
   }
 
+  package { ['gnupg2', 'ubuntu-keyring']:
+    ensure => 'installed'
+  }
+
   exec { 'update-elastic-sign-key':
     path        => '/usr/bin',
     command     => "gpg --dearmor -o ${sign_file} ${public_key_file}",
