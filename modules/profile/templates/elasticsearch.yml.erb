@@ -1,0 +1,22 @@
+path.data: /var/lib/elasticsearch
+path.logs: /var/log/elasticsearch
+
+network.host: _ec2_
+
+node.roles: [ master, data ]
+
+<% if @facts['elasticsearch']['bootstrap_cluster'] -%>
+cluster.initial_master_nodes: <%= @facts['ec2_metadata']['local-ipv4'] %>
+<% end -%>
+
+discovery.seed_providers: ec2
+discovery.ec2.tag.cluster: <%= @facts['elasticsearch']['cluster_name'] %>
+discovery.ec2.tag.environment: <%= @facts['puppet_environment'] %>
+
+xpack.security.enabled: false
+xpack.security.autoconfiguration.enabled: false
+xpack.security.enrollment.enabled: false
+xpack.security.http.ssl.enabled: false
+xpack.security.transport.ssl.enabled: false
+
+logger.org.elasticsearch.discovery.ec2: "INFO"
