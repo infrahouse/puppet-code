@@ -1,5 +1,5 @@
 # @summary: Installs elasicsearch repository.
-class profile::elastic_master::repo () {
+class profile::elastic::repo () {
   $public_key_file = '/var/tmp/GPG-KEY-elasticsearch'
   $sign_file = '/usr/share/keyrings/elasticsearch-keyring.gpg'
   file { $public_key_file:

@@ -1,5 +1,5 @@
 # @summary: Installs elasicsearch packages.
-class profile::elastic_master::packages () {
+class profile::elastic::packages () {
 
   package { 'elasticsearch':
     ensure  => present,

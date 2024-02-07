@@ -6,5 +6,5 @@ do
   puppet-lint --fail-on-warnings $module
 done
 
-dch --distribution jammy -R "commit event. see changes history in git log"
+make bumpversion
 git add debian/changelog

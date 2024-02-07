@@ -3,7 +3,7 @@ path.logs: /var/log/elasticsearch
 
 network.host: _ec2_
 
-node.roles: [ master, data ]
+node.roles: [<%= @elastic_cluster_role %>]
 
 <% if @facts['elasticsearch']['bootstrap_cluster'] -%>
 cluster.initial_master_nodes: <%= @facts['ec2_metadata']['local-ipv4'] %>

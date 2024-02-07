@@ -1,11 +1,5 @@
 # @summary: Installs elasicsearch service.
-class profile::elastic_master::service () {
-
-  file { '/etc/elasticsearch/elasticsearch.yml':
-    ensure  => file,
-    content => template('profile/elasticsearch.yml.erb'),
-    notify  => Service['elasticsearch'],
-  }
+class profile::elastic::service () {
 
   exec { 'reload-systemd-for-elastic':
     path        => '/bin',
@@ -16,8 +10,11 @@ class profile::elastic_master::service () {
   }
 
   service { 'elasticsearch':
-    ensure  => running,
-    require => [
+    ensure    => running,
+    subscribe => [
+      File['/etc/elasticsearch/elasticsearch.yml'],
+    ],
+    require   => [
       File['/etc/elasticsearch/elasticsearch.yml'],
     ]
   }
