@@ -6,7 +6,7 @@ class profile::elastic_master () {
   include 'profile::elastic::service'
 
   class { 'profile::elastic::config':
-    role => 'master',
-    name => lookup('elasticsearch::cluster::name', undef, undef, 'elasticsearch'),
+    role         => 'master',
+    cluster_name => lookup('elasticsearch::cluster::name', undef, undef, 'elasticsearch'),
   }
 }
