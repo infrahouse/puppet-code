@@ -6,6 +6,7 @@ class profile::elastic_data () {
   include 'profile::elastic::service'
 
   class { 'profile::elastic::config':
-    role => 'data'
+    role => 'data',
+    name => lookup('elasticsearch::cluster::name', undef, undef, 'elasticsearch'),
   }
 }
