@@ -56,10 +56,10 @@ docker:  ## Run a container
 
 .PHONY: bumpversion
 bumpversion:
-	@docker run --rm -v $$PWD:/puppet-code -w /puppet-code ubuntu:jammy bash -c "apt-get update; \
-		apt-get -y install devscripts \
-		debhelper; \
-		DEBEMAIL=packager@infrahouse.com dch --distribution jammy -R 'commit event. see changes history in git log'"
+	@docker run --rm -v $$PWD:/puppet-code \
+	-w /puppet-code \
+	twindb/ubuntu-debhelper@sha256:0bdd44e6f036974d09bf9c69144256d037f14d47d227bdd45f98e2005f732f99 \
+	bash -c "DEBEMAIL=packager@infrahouse.com dch --distribution jammy -R 'commit event. see changes history in git log'"
 
 .PHONY: test-puppet
 test-puppet:

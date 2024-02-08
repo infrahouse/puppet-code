@@ -13,6 +13,7 @@ discovery.seed_providers: ec2
 discovery.ec2.tag.cluster: <%= @facts['elasticsearch']['cluster_name'] %>
 discovery.ec2.tag.environment: <%= @facts['puppet_environment'] %>
 
+xpack.security.audit.enabled: true
 xpack.security.enabled: false
 xpack.security.autoconfiguration.enabled: false
 xpack.security.enrollment.enabled: false
