@@ -7,6 +7,5 @@ class profile::elastic_master () {
 
   class { 'profile::elastic::config':
     role         => 'master',
-    cluster_name => lookup('elasticsearch::cluster::name', undef, undef, 'elasticsearch'),
   }
 }
