@@ -15,10 +15,14 @@ discovery.ec2.tag.cluster: <%= @facts['elasticsearch']['cluster_name'] %>
 discovery.ec2.tag.environment: <%= @facts['puppet_environment'] %>
 
 xpack.security.audit.enabled: true
-xpack.security.enabled: false
+xpack.security.enabled: true
 xpack.security.autoconfiguration.enabled: false
 xpack.security.enrollment.enabled: false
 xpack.security.http.ssl.enabled: false
-xpack.security.transport.ssl.enabled: false
+
+xpack.security.transport.ssl.enabled: true
+xpack.security.transport.ssl.key: "/etc/elasticsearch/letsencrypt/privkey.pem"
+xpack.security.transport.ssl.certificate: "/etc/elasticsearch/letsencrypt/cert.pem"
+xpack.security.transport.ssl.certificate_authorities: "/etc/elasticsearch/letsencrypt/fullchain.pem"
 
 logger.org.elasticsearch.discovery.ec2: "INFO"
