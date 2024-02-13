@@ -25,4 +25,9 @@ xpack.security.transport.ssl.enabled: true
 xpack.security.transport.ssl.key: "/etc/elasticsearch/letsencrypt/privkey.pem"
 xpack.security.transport.ssl.certificate: "/etc/elasticsearch/letsencrypt/fullchain.pem"
 
+xpack.security.authc:
+  anonymous:
+    roles: monitoring_user
+    authz_exception: true
+
 logger.org.elasticsearch.discovery.ec2: "INFO"
