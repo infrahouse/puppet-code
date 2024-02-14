@@ -6,6 +6,6 @@ class profile::elastic_master () {
   include 'profile::elastic::service'
 
   class { 'profile::elastic::config':
-    role         => 'master',
+    role         => 'master, remote_cluster_client',
   }
 }
