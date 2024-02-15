@@ -59,4 +59,16 @@ class profile::elastic::config (
       Exec['obtain_certificate']
     ],
   }
+
+  $total_ram = $facts['memory']['system']['total_bytes']
+  $es_heap_size = $total_ram/2
+
+  file { '/etc/elasticsearch/jvm.options.d/heap.options':
+    ensure  => file,
+    content => template('profile/elasticsearch/heap.erb'),
+    notify  => Service['elasticsearch'],
+    require => [
+      Package['elasticsearch']
+    ],
+  }
 }
