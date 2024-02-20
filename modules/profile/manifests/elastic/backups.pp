@@ -4,7 +4,7 @@ class profile::elastic::backups () {
   cron { 'elastic-backup':
     command => '/usr/local/bin/ih-elastic snapshots status backups',
     user    => 'root',
-    hour    => fqdn_rand(23),
+    hour    => fqdn_rand(24),
     minute  => fqdn_rand(60),
   }
 }
