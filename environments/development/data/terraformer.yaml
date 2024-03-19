@@ -1,0 +1,5 @@
+---
+classes:
+  - role::terraformer
+
+profile::terraformer::terraform_version: "1.6.6-1"
