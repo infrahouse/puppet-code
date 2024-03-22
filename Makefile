@@ -66,6 +66,6 @@ test-puppet:
 	sudo ih-puppet \
      --environment development \
      --environmentpath {root_directory}/environments \
-     --root-directory /home/ubuntu/code/puppet-code \
+     --root-directory /home/aleks/code/puppet-code \
      --hiera-config {root_directory}/environments/{environment}/hiera.yaml \
      --module-path {root_directory}/modules apply
