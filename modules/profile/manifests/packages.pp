@@ -9,6 +9,7 @@ class profile::packages (
       'python3'            => present,
       'python-is-python3'  => present,
       'python3-virtualenv' => present,
+      'sysstat'            => present,
     }
   )
 ) {

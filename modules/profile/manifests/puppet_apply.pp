@@ -22,6 +22,7 @@ class profile::puppet_apply () {
     '--module-path',
     $facts['ih-puppet']['module-path'],
     'apply',
+    $facts['ih-puppet'].get('manifest', '')
   ]
 
   $m = fqdn_rand(30)
