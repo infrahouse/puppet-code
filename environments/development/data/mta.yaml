@@ -1,0 +1,10 @@
+---
+classes:
+  - role::mta
+
+profile::postfix::myhostname: mail.infrahouse.com
+profile::postfix::mydomain: infrahouse.com
+profile::postfix::mydestination:
+  - infrahouse.com
+profile::postfix::relayhost: []
+profile::postfix::mynetworks: []
