@@ -16,7 +16,7 @@ class profile::postfix::config (
     'profile::postfix::mynetworks', undef, undef, []
   ),
 ) {
-  $postfix_mydestination = ($mydestination + [$myhostname, $mydomain, 'localhost']).join(',')
+  $postfix_mydestination = ($mydestination + [$myhostname, $mydomain, $facts['networking']['fqdn'], 'localhost']).join(',')
   $postfix_relayhost = $relayhost.join(',')
   $postfix_mynetworks = ($mynetworks + ['127.0.0.0/8', '[::ffff:127.0.0.0]/104', '[::1]/128']).join(',')
 
