@@ -1,9 +1,4 @@
 ---
 classes:
   - role::jumphost
-  - role::github_runner
 
-profile::github_runner::url: "https://github.com/infrahouse"
-profile::github_runner::org: "infrahouse"
-profile::github_runner::labels:
-  - "env:production"
