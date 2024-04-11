@@ -9,7 +9,8 @@ class profile::github_runner::register (
 ) {
 
   $hostname = $facts['networking']['hostname']
-  $labels = $runner_labels.map |$label| {
+  $instance_id = $facts['ec2_metadata']['instance-id']
+  $labels = ($runner_labels + ["instance_id:${instance_id}"]).map |$label| {
     "--label ${label}"
   }
   $labels_arg = join($labels, ' ')
