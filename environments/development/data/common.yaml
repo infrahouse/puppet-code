@@ -1,3 +1,8 @@
+lookup_options:
+  accounts::user_list:
+    merge:
+      strategy: deep
+
 sudo::configs:
   'admin':
     'content'   : '%admin ALL=(ALL) NOPASSWD: ALL'
