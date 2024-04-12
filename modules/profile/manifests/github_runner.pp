@@ -28,12 +28,13 @@ class profile::github_runner (
   $runner_package_directory = "${tmp_dir}/actions-runner-linux"
 
   $user = 'github-runner'
-  $group = 'github-runner'
+  $group = 'docker'
+  require 'profile::docker'
 
   class { 'profile::github_runner::user':
     user  => $user,
     group => $group,
-    home  => $runner_package_directory
+    home  => $runner_package_directory,
   }
 
   class { 'profile::github_runner::package':

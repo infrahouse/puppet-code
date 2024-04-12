@@ -22,7 +22,7 @@ export PRINT_HELP_PYSCRIPT
 
 BROWSER := python -c "$$BROWSER_PYSCRIPT"
 OS_VERSION ?= jammy
-
+PUPPET_ENV := $(shell sudo facter -p puppet_environment)
 PWD := $(shell pwd)
 INSTALL_DIR = "/opt/puppet-code"
 
@@ -64,7 +64,7 @@ bumpversion:
 .PHONY: test-puppet
 test-puppet:
 	sudo ih-puppet \
-     --environment development \
+     --environment $(PUPPET_ENV) \
      --environmentpath {root_directory}/environments \
      --root-directory /home/$(USER)/code/puppet-code \
      --hiera-config {root_directory}/environments/{environment}/hiera.yaml \
