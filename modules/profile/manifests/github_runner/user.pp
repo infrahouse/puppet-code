@@ -2,7 +2,8 @@
 class profile::github_runner::user (
   $user,
   $group,
-  $home
+  $home,
+  $docker_package = 'docker-ce',
 ) {
 
   group { $user:
@@ -10,10 +11,11 @@ class profile::github_runner::user (
   }
 
   user { $user:
-    ensure => present,
-    gid    => $group,
-    home   => $home,
-    shell  => '/bin/bash',
+    ensure  => present,
+    gid     => $group,
+    home    => $home,
+    shell   => '/bin/bash',
+    require => Package[$docker_package],
   }
 
   $aws_region = $facts['ec2_metadata']['placement']['region']
