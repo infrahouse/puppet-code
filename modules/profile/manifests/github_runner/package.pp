@@ -40,4 +40,8 @@ class profile::github_runner::package (
     }
   }
 
+  $enhancers = [
+    'yamllint',
+  ]
+  package { $enhancers: ensure => 'installed' }
 }
