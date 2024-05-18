@@ -10,4 +10,18 @@ class profile::base () {
   include '::accounts'
   include '::sudo'
 
+  # Install puppet gems
+  $gems = [
+    'json', 'aws-sdk-core', 'aws-sdk-secretsmanager'
+  ]
+
+  $gem_cmd = '/opt/puppetlabs/puppet/bin/gem'
+  $gems.each |$gem| {
+    exec { "gem_install_${gem}":
+      command => "${gem_cmd} install ${gem}",
+      path    => '/bin:/usr/bin',
+      unless  => "${gem_cmd} list | grep ${gem}",
+    }
+  }
+
 }
