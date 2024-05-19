@@ -22,7 +22,7 @@ export PRINT_HELP_PYSCRIPT
 
 BROWSER := python -c "$$BROWSER_PYSCRIPT"
 OS_VERSION ?= jammy
-PUPPET_ENV := $(shell sudo facter -p puppet_environment)
+PUPPET_ENV := $(shell sudo /opt/puppetlabs/bin/facter -p puppet_environment)
 PWD := $(shell pwd)
 INSTALL_DIR = "/opt/puppet-code"
 
