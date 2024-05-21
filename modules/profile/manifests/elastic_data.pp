@@ -8,6 +8,11 @@ class profile::elastic_data () {
   include 'profile::elastic::backups'
 
   class { 'profile::elastic::config':
-    role         => 'data',
+    role => lookup(
+      'profile::elastic::config::role',
+      undef,
+      undef,
+      'data'
+    ),
   }
 }

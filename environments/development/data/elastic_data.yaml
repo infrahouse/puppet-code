@@ -5,3 +5,5 @@ classes:
 accounts::user_list:
   ubuntu:
     group: 'admin'
+
+profile::elastic::config::role: 'data, transform'
