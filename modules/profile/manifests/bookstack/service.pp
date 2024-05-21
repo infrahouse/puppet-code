@@ -2,11 +2,11 @@
 class profile::bookstack::service (
 ) {
 
-  service { 'postfix':
+  service { 'nginx':
     ensure  => running,
     require => [
       Package['nginx-core'],
+      File['/etc/nginx/sites-available/default']
     ],
   }
-
 }

@@ -64,7 +64,6 @@ bumpversion:
 .PHONY: test-puppet
 test-puppet:
 	sudo ih-puppet \
-		--debug \
 		--root-directory /home/$(USER)/code/puppet-code \
 		--environment $(PUPPET_ENV) \
 		--environmentpath {root_directory}/environments \
