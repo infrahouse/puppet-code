@@ -28,7 +28,7 @@ xpack.security.transport.ssl.verification_mode: certificate
 
 xpack.security.authc:
   anonymous:
-    roles: monitoring_user
+    roles: <%= @elastic_monitoring_role_name %>
     authz_exception: true
 
 logger.org.elasticsearch.discovery.ec2: "INFO"
