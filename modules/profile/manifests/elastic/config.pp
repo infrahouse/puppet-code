@@ -1,9 +1,16 @@
 # @summary: Installs elasicsearch service.
 class profile::elastic::config (
   String $role = 'master',
+  String $monitoring_role_name = lookup(
+    'profile::elastic::config::monitoring_role_name',
+    undef,
+    undef,
+    'monitoring_user',
+  ),
 ) {
 
   $elastic_cluster_role = $role
+  $elastic_monitoring_role_name = $monitoring_role_name
 
   $hostname = $facts['networking']['hostname']
   $le_domain = $facts['letsencrypt']['domain']
@@ -59,6 +66,21 @@ class profile::elastic::config (
       Exec['obtain_certificate']
     ],
   }
+
+  if $monitoring_role_name != 'monitoring_user' {
+    $ensure_role_file = 'file'
+  } else {
+    $ensure_role_file = 'absent'
+  }
+
+  file { '/etc/elasticsearch/roles.yml':
+    ensure  => $ensure_role_file,
+    content => template('profile/elasticsearch/roles.yml.erb'),
+    owner   => 'elasticsearch',
+    mode    => '0644',
+    notify  => Service['elasticsearch'],
+  }
+
 
   $total_ram = $facts['memory']['system']['total_bytes']
   $es_heap_size = $total_ram/2
