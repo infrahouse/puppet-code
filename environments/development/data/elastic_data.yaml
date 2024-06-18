@@ -7,4 +7,3 @@ accounts::user_list:
     group: 'admin'
 
 profile::elastic::config::role: 'data, transform'
-profile::elastic::config::monitoring_role_name: 'anonymous_monitor'
