@@ -5,5 +5,3 @@ classes:
 accounts::user_list:
   ubuntu:
     group: 'admin'
-
-profile::elastic::config::monitoring_role_name: 'anonymous_monitor'

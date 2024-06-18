@@ -1,3 +1,9 @@
+puppet-code (0.1.0-1build94) jammy; urgency=medium
+
+  * commit event. see changes history in git log
+
+ -- root <packager@infrahouse.com>  Tue, 18 Jun 2024 23:14:46 +0000
+
 puppet-code (0.1.0-1build93) jammy; urgency=medium
 
   * commit event. see changes history in git log
