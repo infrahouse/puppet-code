@@ -24,9 +24,15 @@ alias_maps = hash:/etc/aliases
 alias_database = hash:/etc/aliases
 myorigin = /etc/mailname
 mydestination = <%= @postfix_mydestination %>
-relayhost = <%= @postfix_relayhost %>
 mynetworks = <%= @postfix_mynetworks %>
 mailbox_size_limit = 0
 recipient_delimiter = +
-inet_interfaces = all
+inet_interfaces = <%= @postfix_inet_interfaces %>
 inet_protocols = all
+
+relayhost = <%= @postfix_relayhost %>
+smtp_sasl_auth_enable = yes
+smtp_sasl_password_maps = static:<%= @postfix_smtp_user %>:<%= @postfix_smtp_password %>
+smtp_sasl_security_options = noanonymous
+smtp_tls_security_level = encrypt
+header_size_limit = 4096000
