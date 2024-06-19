@@ -1,5 +1,9 @@
 # @summary: Configure cron job for periodic puppet apply.
-class profile::puppet_apply () {
+class profile::puppet_apply (
+  $mailto = lookup(
+    'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
+  ),
+) {
 
   package { 'puppet-code':
     ensure => latest
@@ -28,7 +32,10 @@ class profile::puppet_apply () {
   $m = fqdn_rand(30)
   cron { 'puppet_apply':
     command     => $ih_cmd.join(' '),
-    environment => 'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
+    environment => [
+      'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
+      "MAILTO=${mailto}"
+    ],
     user        => 'root',
     minute      => [$m, $m + 30],
     require     => [
