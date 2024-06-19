@@ -34,7 +34,7 @@ class profile::postfix::config (
   file { '/etc/postfix/main.cf':
     ensure  => file,
     content => template('profile/postfix/main.cf.erb'),
-    owner   => 'postfix',
+    owner   => 'root',
     mode    => '0600',
     notify  => Service['postfix'],
     require => [
@@ -60,8 +60,24 @@ class profile::postfix::config (
     target       => '/etc/hosts',
   }
 
+  file { '/etc/postfix/generic':
+    content => "root root@${myhostname}.${mydomain}\n",
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    notify  => Exec[refesh_postfix_generic],
+    require => Package['postfix'],
+  }
+
   exec { 'refesh_hostname':
     command     => "/usr/bin/hostname ${myhostname}.${mydomain}",
+    refreshonly => true,
+  }
+
+  exec { 'refesh_postfix_generic':
+    command     => '/usr/sbin/postmap /etc/postfix/generic',
+    require     => Package['postfix'],
+    notify      => Service[postfix],
     refreshonly => true,
   }
 }
