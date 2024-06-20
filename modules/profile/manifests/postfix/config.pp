@@ -22,14 +22,20 @@ class profile::postfix::config (
   $postfix_relayhost = $relayhost
   $postfix_mynetworks = ($mynetworks + ['127.0.0.0/8', '[::ffff:127.0.0.0]/104', '[::1]/128']).join(',')
 
-  $postfix_smtp_user = aws_get_secret(
-    $facts['postfix']['smtp_credentials'],
-    $facts['ec2_metadata']['placement']['region']
-  )['user']
-  $postfix_smtp_password = aws_get_secret(
-    $facts['postfix']['smtp_credentials'],
-    $facts['ec2_metadata']['placement']['region']
-  )['password']
+  $postfix_smtp_user = 'postfix' in $facts ? {
+    true => aws_get_secret(
+      $facts['postfix']['smtp_credentials'],
+      $facts['ec2_metadata']['placement']['region']
+    )['user'],
+    false => 'Not configured'
+  }
+    $postfix_smtp_password = 'postfix' in $facts ? {
+      true => aws_get_secret(
+        $facts['postfix']['smtp_credentials'],
+        $facts['ec2_metadata']['placement']['region']
+      )['password'],
+      false => 'See https://registry.terraform.io/modules/infrahouse/jumphost/aws/latest'
+    }
 
   file { '/etc/postfix/main.cf':
     ensure  => file,
