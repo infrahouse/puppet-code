@@ -15,6 +15,7 @@ class profile::puppet_apply (
       true  => '--debug',
       false => ''
     },
+    '--quiet',
     '--environment',
     $facts['puppet_environment'],
     '--environmentpath',
