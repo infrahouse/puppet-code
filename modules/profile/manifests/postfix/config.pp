@@ -42,6 +42,7 @@ class profile::postfix::config (
     content => "${myhostname}.${mydomain}",
     owner   => 'root',
     mode    => '0644',
+    notify  => Service['postfix'],
   }
 
   file { '/etc/postfix/main.cf':
