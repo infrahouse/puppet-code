@@ -89,12 +89,12 @@ class profile::postfix::config (
   }
 
   exec { 'refesh_postfix_generic':
-    command     => '/usr/sbin/postmap /etc/postfix/generic',
-    require     => [
+    command => '/usr/sbin/postmap /etc/postfix/generic',
+    require => [
       Package['postfix'],
       File['/etc/mailname'],
     ],
-    notify      => Service[postfix],
-    refreshonly => true,
+    notify  => Service[postfix],
+    creates => '/etc/postfix/generic.db',
   }
 }
