@@ -37,6 +37,13 @@ class profile::postfix::config (
       false => 'See https://registry.terraform.io/modules/infrahouse/jumphost/aws/latest'
     }
 
+  file { '/etc/mailname':
+    ensure  => file,
+    content => "${myhostname}.${mydomain}",
+    owner   => 'root',
+    mode    => '0644',
+  }
+
   file { '/etc/postfix/main.cf':
     ensure  => file,
     content => template('profile/postfix/main.cf.erb'),
@@ -82,7 +89,10 @@ class profile::postfix::config (
 
   exec { 'refesh_postfix_generic':
     command     => '/usr/sbin/postmap /etc/postfix/generic',
-    require     => Package['postfix'],
+    require     => [
+      Package['postfix'],
+      File['/etc/mailname'],
+    ],
     notify      => Service[postfix],
     refreshonly => true,
   }

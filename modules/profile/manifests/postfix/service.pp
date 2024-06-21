@@ -6,7 +6,8 @@ class profile::postfix::service (
     ensure  => running,
     require => [
       Package['postfix'],
-      File['/etc/postfix/main.cf']
+      File['/etc/postfix/main.cf'],
+      File['/etc/mailname'],
     ],
   }
 
