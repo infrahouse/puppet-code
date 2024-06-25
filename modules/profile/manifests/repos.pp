@@ -4,6 +4,7 @@ class profile::repos () {
     stage  => init,
     update => {
       frequency => 'always',
+      tries     => 5,
     },
   }
 }
