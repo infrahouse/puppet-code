@@ -1,5 +1,6 @@
 # @summary: Configures jumphost resources
 class profile::jumphost () {
+  include 'profile::echo'
 
   $packages = {
     'pdsh' => present,
