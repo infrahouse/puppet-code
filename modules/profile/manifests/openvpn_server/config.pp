@@ -9,12 +9,20 @@ class profile::openvpn_server::config (
   String $openvpn_easyrsa_req_email,
   String $openvpn_easyrsa_req_ou,
   String $openvpn_easyrsa_req_cn,
+  String $openvpn_topology,
+  String $openvpn_network,
+  String $openvpn_netmask,
 ) {
 
   $dns_name = $facts['efs']['dns_name']
   $nfs_device = "${dns_name}:/"
   $openvpn_easyrsa_passin_file = "${openvp_config_directory}/ca_passphrase"
   $openvpn_easyrsa_tmp_dir = '/tmp'
+
+  $openvpn_routes = 'routes' in $facts['openvpn'] ? {
+    true => $facts['openvpn']['routes'],
+    false => [],
+  }
 
   class { 'profile::openvpn_server::volume':
     nfs_device   => $nfs_device,
@@ -130,6 +138,17 @@ class profile::openvpn_server::config (
       File["${openvp_config_directory}/vars"],
       File[$openvpn_easyrsa_passin_file],
     ]
+  }
+
+  file { '/etc/sysctl.d/net.ipv4.ip_forward.conf':
+    content => 'net.ipv4.ip_forward = 1',
+    notify  => Exec[deb_systemd_invoke_restart_procps_service],
+  }
+
+  exec {'deb_systemd_invoke_restart_procps_service':
+    path        => '/usr/bin',
+    command     => 'deb-systemd-invoke restart procps.service',
+    refreshonly => true,
   }
 
 }
