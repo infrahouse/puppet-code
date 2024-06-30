@@ -1,8 +1,5 @@
 # @summary: OpenVPN server profile.
 class profile::openvpn_server (
-  $openvpn_port = lookup(
-    'profile::openvpn_server::port', undef, undef, 1194
-  ),
   $openvp_config_directory = lookup(
     'profile::openvpn_server::config_directory', undef, undef, '/etc/openvpn'
   ),
@@ -13,6 +10,9 @@ class profile::openvpn_server (
   $openvpn_easyrsa_req_email = lookup('profile::openvpn_server::openvpn_easyrsa_req_email', undef, undef, 'security@infrahouse.com' ),
   $openvpn_easyrsa_req_ou = lookup('profile::openvpn_server::openvpn_easyrsa_req_ou', undef, undef, 'Security Organization' ),
   $openvpn_easyrsa_req_cn = lookup('profile::openvpn_server::openvpn_easyrsa_req_cn', undef, undef, 'InfraHouse OpenVPN Root CA' ),
+  $openvpn_topology = lookup('profile::openvpn_server::openvpn_topology', undef, undef, 'net30' ),
+  $openvpn_network = lookup('profile::openvpn_server::openvpn_network', undef, undef, '172.16.0.0' ),
+  $openvpn_netmask = lookup('profile::openvpn_server::openvpn_netmask', undef, undef, '255.255.0.0' ),
 ) {
 
   class { 'profile::openvpn_server::packages':
@@ -20,9 +20,11 @@ class profile::openvpn_server (
   }
 
   class { 'profile::openvpn_server::config':
-    openvpn_port                 => $openvpn_port,
     openvp_config_directory      => $openvp_config_directory,
-
+    openvpn_port                 => $facts['openvpn']['openvpn_port'],
+    openvpn_topology             => $openvpn_topology,
+    openvpn_network              => $openvpn_network,
+    openvpn_netmask              => $openvpn_netmask,
     openvpn_easyrsa_req_country  => $openvpn_easyrsa_req_country,
     openvpn_easyrsa_req_province => $openvpn_easyrsa_req_province,
     openvpn_easyrsa_req_city     => $openvpn_easyrsa_req_city,

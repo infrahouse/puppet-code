@@ -9,11 +9,13 @@ ca <%= @openvp_config_directory %>/pki/ca.crt
 cert <%= @openvp_config_directory %>/pki/issued/server.crt
 key <%= @openvp_config_directory %>/pki/private/server.key  # This file should be kept secret
 
-dh dh2048.pem
-topology subnet
-server 172.16.0.0 255.255.255.0
+dh <%= @openvp_config_directory %>/dh2048.pem
+topology <%= @openvpn_topology %>
+server <%= @openvpn_network %> <%= @openvpn_netmask %>
 
-push "route 10.1.0.0 255.255.0.0"
+<% @openvpn_routes.each do |route| -%>
+push "route <%= route['network'] %> <%= route['netmask'] %>"
+<% end -%>
 
 push "dhcp-option DNS 208.67.222.222"
 push "dhcp-option DNS 208.67.220.220"
@@ -31,7 +33,7 @@ keepalive 10 120
 # a copy of this key.
 # The second parameter should be '0'
 # on the server and '1' on the clients.
-tls-auth ta.key 0 # This file is secret
+tls-auth <%= @openvp_config_directory %>/ta.key 0 # This file is secret
 
 # Select a cryptographic cipher.
 # This config item must be copied to
