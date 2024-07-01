@@ -11,4 +11,19 @@ class profile::jumphost () {
       ensure => $item[1]
     }
   }
+
+  package { 'openssh-client':
+    ensure => latest,
+  }
+
+  package { 'openssh-server':
+    ensure => latest,
+    notify => Service[sshd],
+  }
+
+  service { 'sshd':
+    ensure  => running,
+    require => Package[openssh-server],
+  }
+
 }
