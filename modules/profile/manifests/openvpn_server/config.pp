@@ -140,15 +140,4 @@ class profile::openvpn_server::config (
     ]
   }
 
-  file { '/etc/sysctl.d/net.ipv4.ip_forward.conf':
-    content => 'net.ipv4.ip_forward = 1',
-    notify  => Exec[deb_systemd_invoke_restart_procps_service],
-  }
-
-  exec {'deb_systemd_invoke_restart_procps_service':
-    path        => '/usr/bin',
-    command     => 'deb-systemd-invoke restart procps.service',
-    refreshonly => true,
-  }
-
 }

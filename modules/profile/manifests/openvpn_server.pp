@@ -38,4 +38,6 @@ class profile::openvpn_server (
     openvp_config_directory => $openvp_config_directory,
   }
 
+  include 'profile::openvpn_server::nat'
+
 }
