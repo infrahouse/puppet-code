@@ -20,6 +20,7 @@ class profile::openvpn_server::nat (
     chain    => 'POSTROUTING',
     table    => 'nat',
     outiface => $facts['networking']['primary'],
+    proto    => 'all',
     jump     => 'MASQUERADE',
     require  => Package[iptables-persistent],
   }
