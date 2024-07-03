@@ -17,6 +17,9 @@ server <%= @openvpn_network %> <%= @openvpn_netmask %>
 push "route <%= route['network'] %> <%= route['netmask'] %>"
 <% end -%>
 
+# Allow multiple connections for a client
+duplicate-cn
+
 keepalive 10 120
 
 # For extra security beyond that provided
