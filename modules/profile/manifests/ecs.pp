@@ -18,4 +18,16 @@ class profile::ecs () {
       Service['docker'],
     ]
   }
+
+  $ecs_cluster = $facts['ecs']['cluster']
+  $ecs_loglevel = $facts['ecs']['loglevel']
+
+  file { '/etc/ecs/ecs.config':
+    ensure  => file,
+    content => template('profile/ecs/ecs.config.erb'),
+    notify  => Service['ecs'],
+    require => [
+      Package['amazon-ecs-init'],
+    ],
+  }
 }
