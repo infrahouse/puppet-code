@@ -30,11 +30,37 @@ recipient_delimiter = +
 inet_interfaces = <%= @postfix_inet_interfaces %>
 inet_protocols = all
 
+<% if !@postfix_relayhost.empty? %>
 relayhost = <%= @postfix_relayhost %>
-smtp_sasl_auth_enable = yes
+<% end %>
+smtp_sasl_auth_enable = <%= @smtp_sasl_auth_enable %>
 smtp_sasl_password_maps = static:<%= @postfix_smtp_user %>:<%= @postfix_smtp_password %>
 smtp_sasl_security_options = noanonymous
 smtp_tls_security_level = encrypt
 header_size_limit = 4096000
 
 smtp_generic_maps = hash:/etc/postfix/generic
+
+smtpd_sender_restrictions =
+  permit_mynetworks
+  permit_sasl_authenticated
+  reject_unknown_sender_domain
+  reject_unknown_reverse_client_hostname
+  reject_unknown_client_hostname
+
+smtpd_recipient_restrictions =
+  permit_mynetworks
+  permit_sasl_authenticated
+  check_client_access hash:/etc/postfix/rbl_override
+  reject_rhsbl_helo dbl.spamhaus.org
+  reject_rhsbl_reverse_client dbl.spamhaus.org
+  reject_rhsbl_sender dbl.spamhaus.org
+  reject_rbl_client zen.spamhaus.org
+
+smtpd_helo_required = yes
+smtpd_helo_restrictions =
+  permit_mynetworks
+  permit_sasl_authenticated
+  reject_invalid_helo_hostname
+  reject_non_fqdn_helo_hostname
+  reject_unknown_helo_hostname
