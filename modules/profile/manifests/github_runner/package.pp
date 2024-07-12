@@ -41,6 +41,8 @@ class profile::github_runner::package (
   }
 
   $enhancers = [
+    'nodejs',
+    'unzip',
     'yamllint',
   ]
   package { $enhancers: ensure => 'installed' }
