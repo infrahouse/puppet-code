@@ -30,9 +30,17 @@ class profile::puppet_apply (
     $facts['ih-puppet'].get('manifest', '')
   ]
 
+  $puppet_wrapper = $ih_cmd.join(' ')
+
+  file { '/usr/local/bin/puppet-wrapper':
+    content => template('profile/puppet-wrapper.erb'),
+    mode    => '0755',
+    owner   => 'root',
+  }
+
   $m = fqdn_rand(30)
   cron { 'puppet_apply':
-    command     => $ih_cmd.join(' '),
+    command     => '/usr/local/bin/puppet-wrapper',
     environment => [
       'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
       "MAILTO=${mailto}"

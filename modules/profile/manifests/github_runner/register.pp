@@ -20,9 +20,9 @@ class profile::github_runner::register (
     user    => $user,
     path    => "/usr/bin:/usr/local/bin:${runner_package_directory}",
     cwd     => $runner_package_directory,
-    command => "ih-github runner --github-token-secret ${token_secret} --org ${org} register \
+    command => "ih-github runner --registration-token-secret ${token_secret} --org ${org} register \
 --actions-runner-code-path ${runner_package_directory} ${url} ${labels_arg}",
-    unless  => "ih-github runner --github-token-secret ${token_secret} --org ${org} is-registered ${hostname}",
+    creates => "${runner_package_directory}/.credentials",
     require => [
       Exec[extract_runner_package]
     ]
