@@ -7,6 +7,7 @@ class profile::base () {
   include 'profile::packages'
   include 'profile::infrahouse_toolkit'
   include 'profile::puppet_apply'
+  include 'profile::swap'
   include '::accounts'
   include '::sudo'
 
