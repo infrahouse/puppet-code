@@ -1,8 +1,15 @@
 # @summary: Installs elasicsearch packages.
-class profile::elastic::packages () {
+class profile::elastic::packages (
+  String $elasticsearch_version = lookup(
+    'profile::elastic::packages::elasticsearch_version',
+    undef,
+    undef,
+    'present'
+  ),
+) {
 
   package { 'elasticsearch':
-    ensure  => present,
+    ensure  => $elasticsearch_version,
     require => [
       File['/etc/apt/sources.list.d/elastic-8.x.list'],
       Exec['update-elastic-repo'],
