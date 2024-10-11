@@ -5,3 +5,6 @@ classes:
 accounts::user_list:
   ubuntu:
     group: 'admin'
+
+profile::elastic::backups::hour: '*/2'
+profile::elastic::backups::minute: '0'
