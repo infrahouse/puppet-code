@@ -52,7 +52,6 @@ jobs:
             - name: Publish Debian package
               run: |
                   ih-s3-reprepro \
-                    --debug \
                     --aws-region ${{ secrets.AWS_DEFAULT_REGION }} \
                     --bucket infrahouse-release-${{ matrix.codename }} \
                     --gpg-key-secret-id packager-key-${{ matrix.codename }} \
