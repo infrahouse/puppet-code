@@ -68,4 +68,4 @@ test-puppet:
 		--environment $(PUPPET_ENV) \
 		--environmentpath {root_directory}/environments \
 		--hiera-config {root_directory}/environments/{environment}/hiera.yaml \
-		--module-path {root_directory}/modules apply
+		--module-path {root_directory}/environments/{environment}/modules:{root_directory}/modules apply

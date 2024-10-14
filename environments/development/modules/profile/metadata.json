@@ -1,0 +1,47 @@
+{
+  "name": "infrahouse-profile",
+  "version": "0.1.0",
+  "author": "infrahouse",
+  "summary": "",
+  "license": "Apache-2.0",
+  "source": "",
+  "dependencies": [
+    {
+      "name": "puppetlabs/apt",
+      "version_requirement": ">= 9.1.0 < 10.0.0"
+    },
+    {
+      "name": "puppetlabs/accounts",
+      "version_requirement": ">= 8.1.0 < 9.0.0"
+    },
+    {
+      "name": "puppetlabs/stdlib",
+      "version_requirement": ">= 9.3.0 < 10.0.0"
+    },
+    {
+      "name": "puppetlabs/firewall",
+      "version_requirement": ">= 8.0.2 < 9.0.0"
+    },
+    {
+      "name": "saz/sudo",
+      "version_requirement": ">= 8.0.0 < 9.0.0"
+    }
+  ],
+  "operatingsystem_support": [
+    {
+      "operatingsystem": "Ubuntu",
+      "operatingsystemrelease": [
+        "22.04"
+      ]
+    }
+  ],
+  "requirements": [
+    {
+      "name": "puppet",
+      "version_requirement": ">= 7.24 < 9.0.0"
+    }
+  ],
+  "pdk-version": "3.0.0",
+  "template-url": "pdk-default#3.0.0",
+  "template-ref": "tags/3.0.0-0-g056e50d"
+}

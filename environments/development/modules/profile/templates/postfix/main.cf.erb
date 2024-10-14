@@ -1,0 +1,67 @@
+smtpd_banner = $myhostname ESMTP $mail_name (Ubuntu)
+biff = no
+
+# appending .domain is the MUA's job.
+append_dot_mydomain = no
+
+# Uncomment the next line to generate "delayed mail" warnings
+#delay_warning_time = 4h
+
+readme_directory = no
+
+# See http://www.postfix.org/COMPATIBILITY_README.html -- default to 3.6 on
+# fresh installs.
+compatibility_level = 3.6
+
+
+
+smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated defer_unauth_destination
+
+myhostname = <%= @myhostname %>
+mydomain = <%= @mydomain %>
+
+alias_maps = hash:/etc/aliases
+alias_database = hash:/etc/aliases
+myorigin = /etc/mailname
+mydestination = <%= @postfix_mydestination %>
+mynetworks = <%= @postfix_mynetworks %>
+mailbox_size_limit = 0
+recipient_delimiter = +
+inet_interfaces = <%= @postfix_inet_interfaces %>
+inet_protocols = all
+
+<% if !@postfix_relayhost.empty? %>
+relayhost = <%= @postfix_relayhost %>
+<% end %>
+smtp_sasl_auth_enable = <%= @smtp_sasl_auth_enable %>
+smtp_sasl_password_maps = static:<%= @postfix_smtp_user %>:<%= @postfix_smtp_password %>
+smtp_sasl_security_options = noanonymous
+smtp_tls_security_level = encrypt
+header_size_limit = 4096000
+
+smtp_generic_maps = hash:/etc/postfix/generic
+
+smtpd_sender_restrictions =
+  permit_mynetworks
+  permit_sasl_authenticated
+  reject_unknown_sender_domain
+  reject_unknown_reverse_client_hostname
+  reject_unknown_client_hostname
+
+smtpd_recipient_restrictions =
+  permit_mynetworks
+  permit_sasl_authenticated
+  check_client_access hash:/etc/postfix/rbl_override
+  reject_rbl_client zen.spamhaus.org=127.0.0.[2..11]
+  reject_rhsbl_sender dbl.spamhaus.org=127.0.1.[2..99]
+  reject_rhsbl_helo dbl.spamhaus.org=127.0.1.[2..99]
+  reject_rhsbl_reverse_client dbl.spamhaus.org=127.0.1.[2..99]
+  warn_if_reject reject_rbl_client zen.spamhaus.org=127.255.255.[1..255]
+
+smtpd_helo_required = yes
+smtpd_helo_restrictions =
+  permit_mynetworks
+  permit_sasl_authenticated
+  reject_invalid_helo_hostname
+  reject_non_fqdn_helo_hostname
+  reject_unknown_helo_hostname
