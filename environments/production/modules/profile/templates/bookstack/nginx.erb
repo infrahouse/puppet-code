@@ -1,0 +1,22 @@
+server {
+  listen 80 default_server;
+  listen [::]:80 default_server;
+
+  root <%= @bookstack_root %>/public;
+  index index.php index.html;
+
+  location / {
+    try_files $uri $uri/ /index.php?$query_string;
+  }
+
+  # Pass PHP scripts to FastCGI server
+  location ~ \.php$ {
+    include snippets/fastcgi-php.conf;
+    fastcgi_pass unix:/var/run/php/php-fpm.sock;
+  }
+
+  # Deny access to .htaccess files
+  location ~ /\.ht {
+    deny all;
+  }
+}
