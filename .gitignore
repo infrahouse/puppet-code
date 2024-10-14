@@ -19,3 +19,10 @@ vendor/*
 /debian/puppet-code.substvars
 /debian/files
 /debian/debhelper-build-stamp
+
+# runtime dependencies
+modules/accounts/
+modules/apt/
+modules/firewall/
+modules/stdlib/
+modules/sudo/
