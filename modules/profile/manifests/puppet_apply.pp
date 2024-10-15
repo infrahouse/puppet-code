@@ -26,6 +26,10 @@ class profile::puppet_apply (
     $facts['ih-puppet']['hiera-config'],
     '--module-path',
     $facts['ih-puppet']['module-path'],
+    ('cancel_instance_refresh_on_error' in $facts['ih-puppet'] and $facts['ih-puppet']['cancel_instance_refresh_on_error']) ? {
+      true  => '--cancel-instance-refresh-on-error',
+      false => ''
+    },
     'apply',
     $facts['ih-puppet'].get('manifest', '')
   ]
