@@ -1,5 +1,12 @@
 # @summary: Installs elasicsearch service.
-class profile::elastic::service () {
+class profile::elastic::service (
+  $mailto = lookup(
+    'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
+  ),
+  $decom_wait_time = lookup(
+    'profile::elastic::service::decom_wait_time', undef, undef, 3600
+  ),
+) {
 
   include 'profile::letsencrypt'
 
@@ -43,5 +50,29 @@ class profile::elastic::service () {
       Exec['set-bootstrap-password'],
       File['/etc/elasticsearch/elasticsearch.yml'],
     ]
+  }
+
+  # If node is about to be replaced by instance refresh
+  # decommission it, wait until Elasticsearch moves shards out,
+  # and complete a lifecycle hook.
+  cron { 'decommission-node':
+    command     => [
+      'ih-elastic',
+      '--quiet',
+      'cluster',
+      'decommission-node',
+      '--only-if-terminating',
+      '--reason',
+      'instance_refresh',
+      '--complete-lifecycle-action',
+      '--wait-until-complete',
+      $decom_wait_time,
+    ].join(' '),
+    environment => [
+      'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
+      "MAILTO=${mailto}"
+    ],
+    user        => 'root',
+    minute      => '*/5',
   }
 }
