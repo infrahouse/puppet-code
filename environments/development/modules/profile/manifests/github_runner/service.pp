@@ -3,6 +3,9 @@ class profile::github_runner::service (
   $runner_package_directory,
   $user,
   $group,
+  $mailto = lookup(
+    'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
+  ),
 ) {
 
   $github_runner_user = $user
@@ -28,5 +31,19 @@ class profile::github_runner::service (
       File[$systemd_file],
       Exec['daemon-reload'],
     ]
+  }
+
+  cron { 'check-health':
+    command     => [
+      'ih-github',
+      'runner',
+      'check-health',
+    ].join(' '),
+    environment => [
+      'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
+      "MAILTO=${mailto}"
+    ],
+    user        => 'root',
+    minute      => '*/5',
   }
 }
