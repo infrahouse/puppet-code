@@ -1,0 +1,12 @@
+[Unit]
+Description=Prometheus Elasticsearch exporter
+Documentation=https://github.com/justwatchcom/elasticsearch_exporter
+After=network.target
+
+[Service]
+User=prometheus
+EnvironmentFile=/etc/prometheus-elasticsearch-exporter.conf
+ExecStart=/usr/bin/prometheus-elasticsearch-exporter $ARGS
+
+[Install]
+WantedBy=multi-user.target
