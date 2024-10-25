@@ -26,9 +26,10 @@ class profile::elastic::prometheus (
   }
 
   file { '/lib/systemd/system/prometheus-elasticsearch-exporter.service':
-    ensure => file,
-    source => 'puppet:///modules/profile/elastic_master/prometheus-elasticsearch-exporter.service',
-    notify => Exec['reload-systemd-prometheus-elasticsearch-exporter']
+    ensure  => file,
+    source  => 'puppet:///modules/profile/elastic_master/prometheus-elasticsearch-exporter.service',
+    notify  => Exec['reload-systemd-prometheus-elasticsearch-exporter'],
+    require => Package['prometheus-elasticsearch-exporter'],
   }
 
   exec { 'reload-systemd-prometheus-elasticsearch-exporter':
