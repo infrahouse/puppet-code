@@ -9,8 +9,15 @@ class profile::webserver () {
   service { 'nginx':
     ensure  => 'running',
     require => [
-    Package['nginx-core'],
+      Package['nginx-core'],
     ]
+  }
+
+  file { '/etc/nginx/sites-enabled/default':
+    ensure  => file,
+    source  => 'puppet:///modules/profile/infrahouse.com.conf',
+    notify  => Service['nginx'],
+    require => Package['nginx-core'],
   }
 
   package { 'infrahouse-com':
