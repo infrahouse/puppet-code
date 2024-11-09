@@ -6,6 +6,9 @@ class profile::github_runner::service (
   $mailto = lookup(
     'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
   ),
+  $disk_usage_threshold = lookup(
+    'profile::github_runner::service::disk_usage_threshold', undef, undef, 80
+  ),
 ) {
 
   $github_runner_user = $user
@@ -38,6 +41,8 @@ class profile::github_runner::service (
       'ih-github',
       'runner',
       'check-health',
+      '--disk-usage-threshold',
+      $disk_usage_threshold,
     ].join(' '),
     environment => [
       'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
