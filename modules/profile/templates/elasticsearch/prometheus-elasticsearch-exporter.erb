@@ -1,0 +1,18 @@
+ES_USERNAME='<%= @user %>'
+ES_PASSWORD='<%= @password %>'
+
+ARGS="--es.uri=http://<%= @ip %>:9200
+--collector.clustersettings
+--collector.snapshots
+--es.indices_settings
+--es.indices_mappings
+--es.aliases
+--es.ilm
+--es.shards
+--es.slm
+--es.data_stream
+--es.indices
+"
+
+# See a list of all command line options in
+# /usr/bin/prometheus-elasticsearch-exporter --help
