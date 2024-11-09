@@ -40,7 +40,14 @@ class profile::infrahouse_github_backup (
   }
 
   cron { 'infrahouse_github_backup':
-    command     => "ih-github backup --app-key-url ${app_key_url}",
+    command     => [
+    'ih-github',
+    'backup',
+    '--app-key-url',
+      $app_key_url,
+    '--tmp-volume-size',
+      $facts['memory']['system']['total_bytes'],
+    ].join(' '),
     environment => [
       'PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin',
       "MAILTO=${mailto}"
