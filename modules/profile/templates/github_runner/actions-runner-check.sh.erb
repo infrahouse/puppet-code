@@ -1,0 +1,11 @@
+#!/bin/bash
+
+SERVICE="actions-runner"
+
+# Check if the service is active
+if ! systemctl is-active --quiet $SERVICE; then
+    ih-aws autoscaling mark-unhealthy
+fi
+if systemctl is-failed --quiet $SERVICE; then
+    ih-aws autoscaling mark-unhealthy
+fi
