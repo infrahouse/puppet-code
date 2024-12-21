@@ -49,9 +49,15 @@ class profile::postfix::config (
     false => 'no'
   }
 
+  if $mydomain == '.' {
+    $fqdn = $facts['ec2_metadata']['hostname']
+  } else {
+    $fqdn = "${myhostname}.${mydomain}"
+  }
+
   file { '/etc/mailname':
     ensure  => file,
-    content => "${myhostname}.${mydomain}",
+    content => $fqdn,
     owner   => 'root',
     mode    => '0644',
     notify  => Service['postfix'],
@@ -70,7 +76,7 @@ class profile::postfix::config (
 
   file { '/etc/hostname':
     ensure  => file,
-    content => "${myhostname}.${mydomain}\n",
+    content => "${fqdn}\n",
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
@@ -81,13 +87,13 @@ class profile::postfix::config (
     ensure       => present,
     ip           => $facts['networking']['ip'],
     host_aliases => [
-      "${myhostname}.${mydomain}"
+      $fqdn
     ],
     target       => '/etc/hosts',
   }
 
   file { '/etc/postfix/generic':
-    content => "root root@${myhostname}.${mydomain}\n",
+    content => "root root@${fqdn}\n",
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
@@ -96,7 +102,7 @@ class profile::postfix::config (
   }
 
   exec { 'refesh_hostname':
-    command     => "/usr/bin/hostname ${myhostname}.${mydomain}",
+    command     => "/usr/bin/hostname ${fqdn}",
     refreshonly => true,
   }
 
