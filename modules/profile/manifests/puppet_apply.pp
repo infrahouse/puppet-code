@@ -42,6 +42,20 @@ class profile::puppet_apply (
     owner   => 'root',
   }
 
+  $puppet_lookup = [
+    'puppet', 'lookup',
+    '--environment', $facts['puppet_environment'],
+    '--hiera_config', $facts['ih-puppet']['hiera-config'],
+    '--render_as', 'json',
+    '--merge', 'deep',
+    '--facts', '/etc/puppetlabs/facter/facts.d/puppet.yaml'
+  ].join(' ')
+  file { '/usr/local/bin/puppet-lookup':
+    content => template('profile/puppet-lookup.erb'),
+    mode    => '0755',
+    owner   => 'root',
+  }
+
   $m = fqdn_rand(30)
   cron { 'puppet_apply':
     command     => '/usr/local/bin/puppet-wrapper',

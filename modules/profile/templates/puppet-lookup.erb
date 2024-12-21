@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+
+usage() {
+  echo "Usage:"
+  echo ""
+  echo "$0 hiera_key"
+  echo ""
+  echo "For example, $0 classes"
+}
+
+trap usage ERR
+
+<%= @puppet_lookup %> $1
