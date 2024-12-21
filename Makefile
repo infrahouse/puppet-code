@@ -69,3 +69,17 @@ test-puppet:
 		--environmentpath {root_directory}/environments \
 		--hiera-config {root_directory}/environments/{environment}/hiera.yaml \
 		--module-path {root_directory}/environments/{environment}/modules:{root_directory}/modules apply
+
+.PHONY: install-infrahouse-repo
+install-infrahouse-repo:
+	# Install dependencies
+	apt-get update
+	apt-get install gpg lsb-release curl
+	# Add a GPG public key to verify InfraHouse packages
+	mkdir -p /etc/apt/cloud-init.gpg.d/
+	curl  -fsSL https://release-$$(lsb_release -cs).infrahouse.com/DEB-GPG-KEY-release-$$(lsb_release -cs).infrahouse.com \
+		| gpg --dearmor -o /etc/apt/cloud-init.gpg.d/infrahouse.gpg
+	# Add the InfraHouse repository source
+	echo "deb [signed-by=/etc/apt/cloud-init.gpg.d/infrahouse.gpg] https://release-$$(lsb_release -cs).infrahouse.com/ $$(lsb_release -cs) main" \
+		> /etc/apt/sources.list.d/infrahouse.list
+	apt-get update
