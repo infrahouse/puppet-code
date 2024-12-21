@@ -1,5 +1,12 @@
 # @summary: Installs and configures webserver.
-class profile::webserver () {
+class profile::webserver (
+  String $website_version = lookup(
+  'profile::webserver::website_version',
+  undef,
+  undef,
+  'latest'
+  ),
+) {
   include 'profile::base'
 
   package { 'nginx-core':
@@ -21,7 +28,7 @@ class profile::webserver () {
   }
 
   package { 'infrahouse-com':
-    ensure  => latest,
+    ensure  => $website_version,
     require => [
       Package['nginx-core'],
     ]

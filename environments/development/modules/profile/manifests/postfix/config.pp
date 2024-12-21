@@ -20,8 +20,11 @@ class profile::postfix::config (
   $whitelist_domains = lookup(
     'profile::postfix::whitelist_domains', undef, undef, []
   ),
+  $postfix_blacklist_senders = lookup(
+  'profile::postfix::blacklist_senders', undef, undef, []
+),
 ) {
-  $postfix_mydestination = ($mydestination + [$myhostname, $mydomain, $facts['networking']['fqdn'], 'localhost']).join(',')
+  $postfix_mydestination = ($mydestination + [$myhostname, $facts['networking']['fqdn'], 'localhost']).join(',')
   $postfix_relayhost = $relayhost
   $postfix_mynetworks = ($mynetworks + ['127.0.0.0/8', '[::ffff:127.0.0.0]/104', '[::1]/128']).join(',')
   $postfix_whitelist_domains = ($whitelist_domains + ['google.com'])
@@ -112,7 +115,7 @@ class profile::postfix::config (
     owner   => 'root',
     group   => 'root',
     mode    => '0644',
-    notify  => Exec[refesh_postfix_generic],
+    notify  => Exec[refesh_rbl_override],
     require => Package['postfix'],
   }
 
@@ -126,4 +129,22 @@ class profile::postfix::config (
     creates => '/etc/postfix/rbl_override.db',
   }
 
+  file { '/etc/postfix/reject_senders':
+    content => template('profile/postfix/reject_senders.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    notify  => Exec[refesh_reject_senders],
+    require => Package['postfix'],
+  }
+
+  exec { 'refesh_reject_senders':
+    command     => '/usr/sbin/postmap /etc/postfix/reject_senders',
+    require     => [
+      Package['postfix'],
+      File['/etc/postfix/reject_senders'],
+    ],
+    refreshonly => true,
+    notify      => Service[postfix],
+  }
 }
