@@ -25,9 +25,12 @@ jobs:
         runs-on: ubuntu-22.04
         strategy:
             matrix:
-                codename: ["focal", "jammy", "noble"]
+                codename: ["jammy", "noble", "oracular"]
         steps:
             - uses: actions/checkout@v3
+            - name: Install InfraHouse APT repository
+              run: |
+                sudo make install-infrahouse-repo
             - name: Install dependencies
               run: |
                 sudo bash support/install_deps.sh
