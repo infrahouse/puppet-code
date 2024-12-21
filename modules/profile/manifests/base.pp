@@ -16,11 +16,11 @@ class profile::base () {
     'json', 'aws-sdk-core', 'aws-sdk-secretsmanager'
   ]
 
-  $gem_cmd = '/opt/puppetlabs/puppet/bin/gem'
+  $gem_cmd = 'gem'
   $gems.each |$gem| {
     exec { "gem_install_${gem}":
       command => "${gem_cmd} install ${gem}",
-      path    => '/bin:/usr/bin',
+      path    => '/bin:/usr/bin:/opt/puppetlabs/puppet/bin',
       unless  => "${gem_cmd} list | grep ${gem}",
     }
   }
