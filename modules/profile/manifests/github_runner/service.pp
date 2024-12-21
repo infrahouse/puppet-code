@@ -14,6 +14,7 @@ class profile::github_runner::service (
   $github_runner_user = $user
   $github_runner_group = $group
   $systemd_file = '/etc/systemd/system/actions-runner.service'
+  $service_check_file = '/usr/local/bin/actions-runner-check.sh'
   file { $systemd_file:
     ensure  => file,
     content => template('profile/github_runner/actions-runner.service.erb'),
@@ -21,6 +22,14 @@ class profile::github_runner::service (
     group   => $group,
     mode    => '0644',
     notify  => Exec['daemon-reload'],
+  }
+
+  file { $service_check_file:
+    ensure  => file,
+    content => template('profile/github_runner/actions-runner-check.sh.erb'),
+    owner   => $user,
+    group   => $group,
+    mode    => 'a+x',
   }
 
   exec { 'daemon-reload':
@@ -43,6 +52,19 @@ class profile::github_runner::service (
       'check-health',
       '--disk-usage-threshold',
       $disk_usage_threshold,
+    ].join(' '),
+    environment => [
+      'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
+      "MAILTO=${mailto}"
+    ],
+    user        => 'root',
+    minute      => '*/5',
+  }
+
+  cron { 'check-status':
+    command     => [
+      'bash',
+      $service_check_file,
     ].join(' '),
     environment => [
       'PATH=/bin:/usr/bin:/usr/sbin:/usr/local/bin',
