@@ -14,6 +14,38 @@ class profile::github_runner::service (
   $github_runner_user = $user
   $github_runner_group = $group
   $systemd_file = '/etc/systemd/system/actions-runner.service'
+  $env_file = "${runner_package_directory}/.env"
+  $cleanup_path = '/usr/local/bin/gha_cleanup.sh'
+
+  file { $env_file:
+    ensure  => file,
+    content => "ACTIONS_RUNNER_HOOK_JOB_STARTED=${cleanup_path}\n",
+    owner   => $user,
+    group   => $group,
+    mode    => '0644',
+    notify  => Service['actions-runner'],
+    require => [
+      File[$runner_package_directory],
+      Exec['extract_runner_package'],
+    ]
+  }
+
+  file { '/etc/sudoers.d/github_runner_chmod':
+    ensure  => file,
+    mode    => '0440',
+    owner   => 'root',
+    group   => 'root',
+    content => "github-runner ALL=(ALL) NOPASSWD: /usr/bin/chown\n",
+  }
+
+  file { $cleanup_path:
+    ensure => file,
+    source => 'puppet:///modules/profile/github_runner/gha_cleanup.sh',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+  }
+
   file { $systemd_file:
     ensure  => file,
     content => template('profile/github_runner/actions-runner.service.erb'),
@@ -32,6 +64,7 @@ class profile::github_runner::service (
     ensure  => running,
     require => [
       File[$systemd_file],
+      File[$env_file],
       Exec['daemon-reload'],
     ]
   }
