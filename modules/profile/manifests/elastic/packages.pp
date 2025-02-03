@@ -9,11 +9,7 @@ class profile::elastic::packages (
 ) {
 
   package { 'elasticsearch':
-    ensure  => $elasticsearch_version,
-    require => [
-      File['/etc/apt/sources.list.d/elastic-8.x.list'],
-      Exec['update-elastic-repo'],
-    ],
+    ensure => $elasticsearch_version,
   }
 
   exec { 'install-discovery-ec2':
