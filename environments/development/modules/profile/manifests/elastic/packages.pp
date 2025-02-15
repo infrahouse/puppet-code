@@ -11,6 +11,9 @@ class profile::elastic::packages (
   package { 'elasticsearch':
     ensure => $elasticsearch_version,
   }
+  package { 'openssl':
+    ensure => present,
+  }
 
   exec { 'install-discovery-ec2':
     command => '/usr/share/elasticsearch/bin/elasticsearch-plugin install --batch discovery-ec2',
