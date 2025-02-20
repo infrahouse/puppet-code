@@ -52,6 +52,18 @@ class profile::elastic::config (
     ]
   }
 
+  file { '/etc/elasticsearch/letsencrypt/chain.pem':
+    ensure  => present,
+    owner   => 'elasticsearch',
+    mode    => '0600',
+    source  => "/etc/letsencrypt/live/${le_fqdn}/chain.pem",
+    links   => follow,
+    require => [
+      Exec['obtain_certificate'],
+      File['/etc/elasticsearch/letsencrypt'],
+    ]
+  }
+
   file { '/etc/elasticsearch/elasticsearch.yml':
     ensure  => file,
     content => template('profile/elasticsearch.yml.erb'),
