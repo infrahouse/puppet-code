@@ -2,6 +2,11 @@
 class profile::jumphost () {
   include 'profile::echo'
 
+  $ssh_service = ($facts['os']['name'] == 'Ubuntu' and $facts['os']['release']['major'] == '24.04') ? {
+    true  => 'ssh',
+    false => 'sshd',
+  }
+
   $packages = {
     'pdsh' => present,
   }
@@ -18,12 +23,12 @@ class profile::jumphost () {
 
   package { 'openssh-server':
     ensure => latest,
-    notify => Service[sshd],
+    notify => Service[$ssh_service],
   }
 
-  service { 'sshd':
+  service { $ssh_service:
     ensure  => running,
-    require => Package[openssh-server],
+    require => Package['openssh-server'],
   }
 
 }
