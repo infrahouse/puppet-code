@@ -25,10 +25,8 @@ xpack.security.transport.ssl.enabled: true
 xpack.security.transport.ssl.key: "/etc/elasticsearch/tls/<%= @le_fqdn %>.pem"
 xpack.security.transport.ssl.certificate: "/etc/elasticsearch/tls/<%= @le_fqdn %>.cert"
 xpack.security.transport.ssl.certificate_authorities:
-  - /etc/elasticsearch/letsencrypt/chain.pem
   - /etc/elasticsearch/tls/ca.cert
-  - /etc/elasticsearch/tls/ISRG_Root_X1.crt
-  - /etc/elasticsearch/tls/ISRG_Root_X2.crt
+
 xpack.security.transport.ssl.verification_mode: certificate
 
 xpack.security.authc:
