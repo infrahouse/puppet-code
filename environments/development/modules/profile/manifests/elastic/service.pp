@@ -8,8 +8,6 @@ class profile::elastic::service (
   ),
 ) {
 
-  include 'profile::letsencrypt'
-
   exec { 'reload-systemd-for-elastic':
     path        => '/bin',
     command     => 'systemctl daemon-reload',
