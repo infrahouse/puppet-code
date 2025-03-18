@@ -1,3 +1,5 @@
 ---
 classes:
   - role::bookstack
+
+profile::bookstack::bookstack_package_url: "https://github.com/BookStackApp/BookStack/archive/refs/tags/v25.02.1.tar.gz"
