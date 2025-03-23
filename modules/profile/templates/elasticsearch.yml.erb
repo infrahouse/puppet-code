@@ -15,6 +15,9 @@ discovery.seed_providers: ec2
 discovery.ec2.tag.cluster: <%= @facts['elasticsearch']['cluster_name'] %>
 discovery.ec2.tag.environment: <%= @facts['puppet_environment'] %>
 
+node.attr.zone: <%=@facts['ec2_metadata']['placement']['availability-zone'] %>
+cluster.routing.allocation.awareness.attributes: zone
+
 xpack.security.audit.enabled: true
 xpack.security.enabled: true
 xpack.security.autoconfiguration.enabled: false
