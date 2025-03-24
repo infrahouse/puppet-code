@@ -29,6 +29,7 @@ class profile::github_runner::package (
 
   $enhancers = [
     'nodejs',
+    'osv-scanner',
     'unzip',
     'yamllint',
   ]
