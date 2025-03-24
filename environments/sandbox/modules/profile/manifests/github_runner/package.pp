@@ -28,8 +28,11 @@ class profile::github_runner::package (
   }
 
   $enhancers = [
+    'gpg',
     'nodejs',
     'osv-scanner',
+    'reprepro',
+    's3fs',
     'unzip',
     'yamllint',
   ]
