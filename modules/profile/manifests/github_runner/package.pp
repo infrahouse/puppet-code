@@ -33,6 +33,7 @@ class profile::github_runner::package (
     'osv-scanner',
     'reprepro',
     's3fs',
+    'trivy',
     'unzip',
     'yamllint',
   ]
