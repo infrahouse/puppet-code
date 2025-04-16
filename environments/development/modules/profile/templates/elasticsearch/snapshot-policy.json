@@ -1,0 +1,34 @@
+{
+  "daily-snapshots": {
+    "policy": {
+      "name": "<daily-snap-{now/d}>",
+      "schedule": "0 30 1 * * ?",
+      "repository": "backups",
+      "config": {
+        "feature_states": [],
+        "include_global_state": true
+      },
+      "retention": {
+        "expire_after": "14d",
+        "min_count": 2,
+        "max_count": 14
+      }
+    }
+  },
+  "hourly-snapshots": {
+    "policy": {
+      "name": "<hourly-snap-{now/H}>",
+      "schedule": "0 0 * * * ?",
+      "repository": "backups",
+      "config": {
+        "feature_states": [],
+        "include_global_state": true
+      },
+      "retention": {
+        "expire_after": "48h",
+        "min_count": 2,
+        "max_count": 48
+      }
+    }
+  }
+}
