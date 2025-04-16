@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -eux
 
-for module in modules/profile modules/role environments/development/modules/profile
+for module in modules/profile modules/role environments/development/modules/profile environments/sandbox/modules/profile
 do
   puppet-lint --fail-on-warnings $module
 done

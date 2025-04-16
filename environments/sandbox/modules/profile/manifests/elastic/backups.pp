@@ -1,23 +1,26 @@
 # @summary: Creates a cronjob to take regular snapshots.
 class profile::elastic::backups (
-  Any $hour = lookup(
-    'profile::elastic::backups::hour',
-    undef,
-    undef,
-    fqdn_rand(24)
-  ),
-  Any $minute = lookup(
-    'profile::elastic::backups::minute',
-    undef,
-    undef,
-    fqdn_rand(60)
-  )
+  String $snapshot_policy_path,
 ) {
 
   cron { 'elastic-backup':
+    ensure  => absent,
     command => '/usr/local/bin/ih-elastic --quiet snapshots create backups',
     user    => 'root',
-    hour    => $hour,
-    minute  => $minute,
   }
+  exec { 'sync-snapshot-policy':
+    command     => "/usr/local/bin/ih-elastic snapshots policy ${snapshot_policy_path}",
+    refreshonly => true,
+    require     => Service[elasticsearch],
+  }
+
+  file { $snapshot_policy_path:
+    ensure  => file,
+    content => template('profile/elasticsearch/snapshot-policy.json'),
+    require => [
+      Package['elasticsearch']
+    ],
+    notify  => Exec[sync-snapshot-policy],
+  }
+
 }
