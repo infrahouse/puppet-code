@@ -37,11 +37,4 @@ class profile::elastic::config (
     ],
   }
 
-  file { '/etc/elasticsearch/snapshot-policy.json':
-    ensure  => file,
-    content => template('profile/elasticsearch/snapshot-policy.json'),
-    require => [
-      Package['elasticsearch']
-    ],
-  }
 }
