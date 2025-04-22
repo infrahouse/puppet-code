@@ -4,9 +4,12 @@ class profile::elastic_data () {
   include 'profile::elastic::packages'
   include 'profile::elastic::service'
   include 'profile::elastic::kibana_user'
-  include 'profile::elastic::backups'
   include 'profile::elastic::prometheus'
   include 'profile::elastic::tls'
+
+  class { 'profile::elastic::backups':
+    snapshot_policy_path => '/etc/elasticsearch/snapshot-policy.json',
+  }
 
   class { 'profile::elastic::config':
     role => lookup(
