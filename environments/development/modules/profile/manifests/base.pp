@@ -3,6 +3,7 @@ class profile::base () {
 
   stage { 'init': before  => Stage['main'] }
 
+  include 'profile::ntp'
   include 'profile::repos'
   include 'profile::packages'
   include 'profile::infrahouse_toolkit'
