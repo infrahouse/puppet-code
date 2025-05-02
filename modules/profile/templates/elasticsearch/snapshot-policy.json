@@ -42,7 +42,7 @@
       },
       "retention": {
         "expire_after": "14d",
-        "min_count": 4,
+        "min_count": 2,
         "max_count": 14
       }
     }
@@ -58,7 +58,7 @@
       },
       "retention": {
         "expire_after": "48h",
-        "min_count": 4,
+        "min_count": 2,
         "max_count": 48
       }
     }
