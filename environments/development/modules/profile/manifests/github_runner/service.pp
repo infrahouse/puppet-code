@@ -14,6 +14,7 @@ class profile::github_runner::service (
   $github_runner_user = $user
   $github_runner_group = $group
   $systemd_file = '/etc/systemd/system/actions-runner.service'
+  $start_script = '/usr/local/bin/start-actions-runner.sh'
   $env_file = "${runner_package_directory}/.env"
   $cleanup_path = '/usr/local/bin/gha_cleanup.sh'
 
@@ -46,6 +47,14 @@ class profile::github_runner::service (
     mode   => '0755',
   }
 
+  file { $start_script:
+    ensure  => file,
+    content => template('profile/github_runner/start-actions-runner.sh.erb'),
+    owner   => $user,
+    group   => $group,
+    mode    => '0755',
+  }
+
   file { $systemd_file:
     ensure  => file,
     content => template('profile/github_runner/actions-runner.service.erb'),
@@ -64,6 +73,7 @@ class profile::github_runner::service (
     ensure  => running,
     require => [
       File[$systemd_file],
+      File[$start_script],
       File[$env_file],
       Exec['daemon-reload'],
     ]

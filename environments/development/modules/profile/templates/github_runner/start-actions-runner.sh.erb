@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+set -eu
+
+while true
+do
+  state="$(aws autoscaling describe-auto-scaling-instances --instance-ids "$(ec2metadata --instance-id)" | jq -r .AutoScalingInstances[0].LifecycleState)"
+  if [[ "$state" == "InService" ]]; then
+    break
+  else
+    echo "The instance in state $state. Waiting."
+    sleep 5
+  fi
+done
+
+# Start actions-runner
+<%= @runner_package_directory %>/run.sh
