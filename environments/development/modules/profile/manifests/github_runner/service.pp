@@ -16,11 +16,12 @@ class profile::github_runner::service (
   $systemd_file = '/etc/systemd/system/actions-runner.service'
   $start_script = '/usr/local/bin/start-actions-runner.sh'
   $env_file = "${runner_package_directory}/.env"
-  $cleanup_path = '/usr/local/bin/gha_cleanup.sh'
+  $prerun_path = '/usr/local/bin/gha_prerun.sh'
+  $postrun_path = '/usr/local/bin/gha_postrun.sh'
 
   file { $env_file:
     ensure  => file,
-    content => "ACTIONS_RUNNER_HOOK_JOB_STARTED=${cleanup_path}\n",
+    content => template('profile/github_runner/actions_env.erb'),
     owner   => $user,
     group   => $group,
     mode    => '0644',
@@ -39,9 +40,17 @@ class profile::github_runner::service (
     content => "github-runner ALL=(ALL) NOPASSWD: /usr/bin/chown\n",
   }
 
-  file { $cleanup_path:
+  file { $prerun_path:
     ensure => file,
-    source => 'puppet:///modules/profile/github_runner/gha_cleanup.sh',
+    source => 'puppet:///modules/profile/github_runner/gha_prerun.sh',
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+  }
+
+  file { $postrun_path:
+    ensure => file,
+    source => 'puppet:///modules/profile/github_runner/gha_postrun.sh',
     owner  => 'root',
     group  => 'root',
     mode   => '0755',
