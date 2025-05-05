@@ -2,4 +2,4 @@
 
 set -eu
 
-ih-aws autoscaling scale-in disable-protection
+/usr/local/bin/ih-aws autoscaling scale-in disable-protection
