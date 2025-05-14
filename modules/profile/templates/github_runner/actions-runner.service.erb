@@ -4,7 +4,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=<%= @runner_package_directory %>/run.sh
+ExecStart=<%= @start_script %>
 WorkingDirectory=<%= @runner_package_directory %>
 User=<%= @github_runner_user %>
 Group=<%= @github_runner_group %>
