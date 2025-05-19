@@ -4,7 +4,7 @@ class profile::elastic::service (
     'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
   ),
   $decom_wait_time = lookup(
-    'profile::elastic::service::decom_wait_time', undef, undef, 3600
+    'profile::elastic::service::decom_wait_time', undef, undef, 172800
   ),
 ) {
 
