@@ -1,0 +1,43 @@
+---
+version: v3
+teleport:
+  nodename: <%= @hostname %>
+  data_dir: /var/lib/teleport
+  join_params:
+    token_name: ""
+    method: token
+  log:
+    output: <%= @logfile %>
+    severity: DEBUG
+    format:
+      output: text
+  ca_pin: ""
+  diag_addr: ""
+
+  storage:
+    type: dynamodb
+    region: <%= @storage_region %>
+    table_name: <%= @storage_table_name %>
+    audit_events_uri:
+      - 'file:///var/lib/teleport/audit/events'
+      - 'stdout://'
+    audit_sessions_uri: "s3://<%= @audit_bucket_name %>/sessions/records"
+    retention_period: "365d"
+    billing_mode: "pay_per_request"
+
+
+auth_service:
+  enabled: true
+  cluster_name: <%= @cluster_name %>
+  listen_addr: 0.0.0.0:3025
+  proxy_listener_mode: multiplex
+
+proxy_service:
+  enabled: true
+  web_listen_addr: 0.0.0.0:3080
+  public_addr: <%= @proxy_public_addr %>::443
+  https_keypairs: []
+  https_keypairs_reload_interval: 0s
+  acme: {}
+  trust_x_forwarded_for: true
+...
