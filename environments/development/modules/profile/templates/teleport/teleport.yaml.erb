@@ -36,6 +36,12 @@ auth_service:
   listen_addr: 0.0.0.0:3025
   proxy_listener_mode: multiplex
 
+db_service:
+  enabled: true
+  resources:
+    - labels:
+        "environment": "<%= @environment %>"
+
 proxy_service:
   enabled: true
   web_listen_addr: 0.0.0.0:3080
@@ -44,4 +50,24 @@ proxy_service:
   https_keypairs_reload_interval: 0s
   acme: {}
   trust_x_forwarded_for: true
+
+discovery_service:
+  enabled: true
+  discovery_group: "aws-<%= @environment %>"
+  aws:
+    # https://goteleport.com/docs/enroll-resources/auto-discovery/servers/ec2-discovery/
+    - types: ["ec2"]
+      regions: [<%= @discover_regions_string %>]
+      install:
+        join_params:
+          token_name: aws-discovery-iam-token
+          method: iam
+      tags:
+        "environment": "<%= @environment %>"
+
+    # https://goteleport.com/docs/enroll-resources/auto-discovery/databases/aws/
+    - types: ["rds"]
+      regions: [<%= @discover_regions_string %>]
+      tags:
+        "environment": "<%= @environment %>"
 ...
