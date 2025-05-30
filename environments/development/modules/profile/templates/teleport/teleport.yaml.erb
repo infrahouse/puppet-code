@@ -28,6 +28,10 @@ teleport:
 
 auth_service:
   enabled: true
+  # https://goteleport.com/docs/admin-guides/access-controls/sso/github-sso/
+  authentication:
+    type: github
+    local_auth: true
   cluster_name: <%= @cluster_name %>
   listen_addr: 0.0.0.0:3025
   proxy_listener_mode: multiplex
