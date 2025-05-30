@@ -35,7 +35,7 @@ auth_service:
 proxy_service:
   enabled: true
   web_listen_addr: 0.0.0.0:3080
-  public_addr: <%= @proxy_public_addr %>::443
+  public_addr: <%= @proxy_public_addr %>:443
   https_keypairs: []
   https_keypairs_reload_interval: 0s
   acme: {}
