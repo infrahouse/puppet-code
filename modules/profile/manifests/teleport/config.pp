@@ -3,7 +3,6 @@ class profile::teleport::config (
 ) {
   $hostname = $facts['networking']['hostname']
   $logfile = '/var/log/teleport/teleport.log'
-  $public_addr = $facts['teleport']['public_addr']
   $storage_region = $facts['ec2_metadata']['placement']['region']
   $storage_table_name = $facts['teleport']['storage_table_name']
   $audit_bucket_name = $facts['teleport']['audit_bucket_name']
@@ -72,14 +71,8 @@ class profile::teleport::config (
         $facts['ec2_metadata']['placement']['region']
       ),
       'display'          => '',
-      'redirect_url'     => 'https://teleport.infrahouse.com:443/v1/webapi/github/callback',
-      'teams_to_roles'   => [
-        {
-          'organization' => 'infrahouse',
-          'roles'        => ['access', 'editor'],
-          'team'         => 'developers',
-        }
-      ]
+      'redirect_url'     => "https://${proxy_public_addr}/v1/webapi/github/callback",
+      'teams_to_roles'   => $facts['teleport']['teams_to_roles']
     }
   }
 
