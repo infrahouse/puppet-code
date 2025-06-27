@@ -10,6 +10,7 @@ push "tun-mtu 1387"
 ca <%= @openvp_config_directory %>/pki/ca.crt
 cert <%= @openvp_config_directory %>/pki/issued/server.crt
 key <%= @openvp_config_directory %>/pki/private/server.key  # This file should be kept secret
+crl-verify <%= @openvp_config_directory %>/pki/crl.pem
 
 dh <%= @openvp_config_directory %>/dh2048.pem
 topology <%= @openvpn_topology %>
