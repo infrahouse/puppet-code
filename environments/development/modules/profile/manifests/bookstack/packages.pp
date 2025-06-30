@@ -74,4 +74,9 @@ class profile::bookstack::packages (
       File["${bookstack_root}/vendor"],
     ]
   }
+
+  file { "${bookstack_root}/public/web.config" :
+    ensure => absent,
+  }
+
 }
