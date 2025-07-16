@@ -50,6 +50,10 @@ class profile::elastic::service (
     ]
   }
 
+  service { 'unattended-upgrades.service':
+    ensure => stopped,
+  }
+
   # If node is about to be replaced by instance refresh
   # decommission it, wait until Elasticsearch moves shards out,
   # and complete a lifecycle hook.
