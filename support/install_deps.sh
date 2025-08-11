@@ -2,7 +2,7 @@
 
 set -eux
 
-CODENAME="jammy"
+CODENAME="noble"
 GPG_KEY_DIR=/etc/apt/cloud-init.gpg.d
 GPG_KEY_PUB="${GPG_KEY_DIR}/infrahouse.gpg"
 GPG_KEY_URL="https://release-${CODENAME}.infrahouse.com/DEB-GPG-KEY-release-${CODENAME}.infrahouse.com"
