@@ -22,10 +22,10 @@ env:
 
 jobs:
     deploy:
-        runs-on: ubuntu-22.04
+        runs-on: ubuntu-24.04
         strategy:
             matrix:
-                codename: ["jammy", "noble", "oracular"]
+                codename: ["noble", "oracular"]
         steps:
             - uses: actions/checkout@v3
             - name: Install InfraHouse APT repository
