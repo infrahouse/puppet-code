@@ -12,7 +12,8 @@ class profile::openvpn_server::packages (
   }
 
   package { 'easy-rsa':
-    ensure => '3.1.7-2'
+    ensure  => '3.1.7-2',
+    require => Mount[$openvp_config_directory],
   }
 
 }
