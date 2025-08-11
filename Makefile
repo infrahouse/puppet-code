@@ -21,7 +21,7 @@ endef
 export PRINT_HELP_PYSCRIPT
 
 BROWSER := python -c "$$BROWSER_PYSCRIPT"
-OS_VERSION ?= jammy
+OS_VERSION ?= noble
 PUPPET_ENV := $(shell sudo /opt/puppetlabs/bin/facter -p puppet_environment)
 PWD := $(shell pwd)
 INSTALL_DIR = "/opt/puppet-code"
@@ -51,7 +51,7 @@ package:  ## Build a deb package
 
 .PHONY: docker
 docker:  ## Run a container
-	@docker run -it --rm -v $$PWD:/puppet-code -w /puppet-code ubuntu:jammy bash -l
+	@docker run -it --rm -v $$PWD:/puppet-code -w /puppet-code ubuntu:noble bash -l
 
 
 .PHONY: bumpversion
@@ -59,7 +59,7 @@ bumpversion:
 	@docker run --rm -v $$PWD:/puppet-code \
 	-w /puppet-code \
 	twindb/ubuntu-debhelper@sha256:0bdd44e6f036974d09bf9c69144256d037f14d47d227bdd45f98e2005f732f99 \
-	bash -c "DEBEMAIL=packager@infrahouse.com dch --distribution jammy -R 'commit event. see changes history in git log'"
+	bash -c "DEBEMAIL=packager@infrahouse.com dch --distribution noble -R 'commit event. see changes history in git log'"
 
 .PHONY: test-puppet
 test-puppet:
