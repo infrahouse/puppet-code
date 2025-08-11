@@ -139,4 +139,20 @@ class profile::openvpn_server::config (
     ]
   }
 
+  exec { 'generate_gen_crl':
+    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars gen-crl",
+    cwd         => $openvp_config_directory,
+    environment => [
+      "EASYRSA_PASSIN=file:${openvpn_easyrsa_passin_file}",
+      "EASYRSA_PASSOUT=file:${openvpn_easyrsa_passin_file}",
+    ],
+    creates     => "${openvp_config_directory}/pki/crl.pem",
+    require     => [
+      Mount[$openvp_config_directory],
+      Package[easy-rsa],
+      File["${openvp_config_directory}/vars"],
+      File[$openvpn_easyrsa_passin_file],
+    ]
+  }
+
 }

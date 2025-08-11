@@ -4,7 +4,7 @@ class profile::elastic::service (
     'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
   ),
   $decom_wait_time = lookup(
-    'profile::elastic::service::decom_wait_time', undef, undef, 3600
+    'profile::elastic::service::decom_wait_time', undef, undef, 172800
   ),
 ) {
 
@@ -48,6 +48,10 @@ class profile::elastic::service (
       Exec['set-bootstrap-password'],
       File['/etc/elasticsearch/elasticsearch.yml'],
     ]
+  }
+
+  service { 'unattended-upgrades.service':
+    ensure => stopped,
   }
 
   # If node is about to be replaced by instance refresh
