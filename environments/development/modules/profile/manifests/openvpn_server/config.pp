@@ -8,7 +8,6 @@ class profile::openvpn_server::config (
   String $openvpn_easyrsa_req_org,
   String $openvpn_easyrsa_req_email,
   String $openvpn_easyrsa_req_ou,
-  String $openvpn_easyrsa_req_cn,
   String $openvpn_topology,
   String $openvpn_network,
   String $openvpn_netmask,
