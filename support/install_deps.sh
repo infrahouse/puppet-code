@@ -7,6 +7,9 @@ GPG_KEY_DIR=/etc/apt/cloud-init.gpg.d
 GPG_KEY_PUB="${GPG_KEY_DIR}/infrahouse.gpg"
 GPG_KEY_URL="https://release-${CODENAME}.infrahouse.com/DEB-GPG-KEY-release-${CODENAME}.infrahouse.com"
 
+apt-get update
+apt-get -y install curl make gpg python-is-python3 sudo build-essential dpkg-dev
+
 mkdir -p $GPG_KEY_DIR
 curl -s $GPG_KEY_URL | gpg --dearmor > ${GPG_KEY_PUB}
 
