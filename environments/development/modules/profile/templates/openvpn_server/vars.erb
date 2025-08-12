@@ -84,7 +84,7 @@ set_var EASYRSA_TEMP_DIR	"<%= @openvpn_easyrsa_tmp_dir %>"
 #   cn_only  - use just a CN value
 #   org      - use the "traditional" Country/Province/City/Org/OU/email/CN format
 
-set_var EASYRSA_DN	"org"
+set_var EASYRSA_DN	"cn_only"
 
 # Organizational fields (used with 'org' mode and ignored in 'cn_only' mode.)
 # These are the default values for fields which will be placed in the
@@ -164,7 +164,7 @@ set_var EASYRSA_NS_COMMENT	"Easy-RSA Generated Certificate"
 set_var EASYRSA_TEMP_FILE	"$EASYRSA_TEMP_DIR/extensions.temp"
 
 set_var EASYRSA_BATCH true
-set_var EASYRSA_NO_PASS true
+set_var EASYRSA_NO_PASS 1
 # !!
 # NOTE: ADVANCED OPTIONS BELOW THIS POINT
 # PLAY WITH THEM AT YOUR OWN RISK
@@ -202,12 +202,6 @@ set_var EASYRSA_NO_PASS true
 # advanced feature.
 
 #set_var EASYRSA_SSL_CONF	"$EASYRSA/openssl-easyrsa.cnf"
-
-# Default CN:
-# This is best left alone. Interactively you will set this manually, and BATCH
-# callers are expected to set this themselves.
-
-set_var EASYRSA_REQ_CN		"ChangeMe"
 
 
 # Cryptographic digest to use.
