@@ -17,6 +17,7 @@ class profile::openvpn_server::config (
   $nfs_device = "${dns_name}:/"
   $openvpn_easyrsa_passin_file = "${openvp_config_directory}/ca_passphrase"
   $openvpn_easyrsa_tmp_dir = '/tmp'
+  $openvpn_crl_path = "${openvp_config_directory}/pki/crl.pem"
 
   $openvpn_routes = 'routes' in $facts['openvpn'] ? {
     true => $facts['openvpn']['routes'],
@@ -97,6 +98,13 @@ class profile::openvpn_server::config (
     ],
   }
 
+  file { "${openvp_config_directory}/pki":
+    owner   => root,
+    group   => root,
+    mode    => '0711',
+    require => Exec[generate_pki]
+  }
+
   exec { 'generate_pki':
     command => '/usr/share/easy-rsa/easyrsa init-pki',
     cwd     => $openvp_config_directory,
@@ -108,49 +116,44 @@ class profile::openvpn_server::config (
   }
 
   exec { 'generate_ca':
-    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-ca",
-    cwd         => $openvp_config_directory,
-    environment => [
-      "EASYRSA_PASSIN=file:${openvpn_easyrsa_passin_file}",
-    ],
-    creates     => "${openvp_config_directory}/pki/private/ca.key",
-    require     => [
+    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-ca",
+    cwd     => $openvp_config_directory,
+    creates => "${openvp_config_directory}/pki/private/ca.key",
+    require => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
-      File[$openvpn_easyrsa_passin_file],
     ]
   }
 
   exec { 'generate_server_key':
-    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-server-full server nopass inline",
-    cwd         => $openvp_config_directory,
-    environment => [
-      "EASYRSA_PASSIN=file:${openvpn_easyrsa_passin_file}",
-      "EASYRSA_PASSOUT=file:${openvpn_easyrsa_passin_file}",
-    ],
-    creates     => "${openvp_config_directory}/pki/private/server.key",
-    require     => [
+    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-server-full server nopass inline",
+    cwd     => $openvp_config_directory,
+    creates => "${openvp_config_directory}/pki/private/server.key",
+    require => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
-      File[$openvpn_easyrsa_passin_file],
     ]
   }
 
+  file { $openvpn_crl_path :
+    owner   => root,
+    group   => nogroup,
+    mode    => '0640',
+    require => Exec[generate_gen_crl]
+  }
+
   exec { 'generate_gen_crl':
-    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars gen-crl",
-    cwd         => $openvp_config_directory,
-    environment => [
-      "EASYRSA_PASSIN=file:${openvpn_easyrsa_passin_file}",
-      "EASYRSA_PASSOUT=file:${openvpn_easyrsa_passin_file}",
-    ],
-    creates     => "${openvp_config_directory}/pki/crl.pem",
-    require     => [
+    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars gen-crl",
+    cwd     => $openvp_config_directory,
+    creates => $openvpn_crl_path,
+    require => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
       File[$openvpn_easyrsa_passin_file],
+      Exec[generate_pki],
     ]
   }
 
