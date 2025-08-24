@@ -22,6 +22,7 @@ class profile::github_runner::package (
 
   exec { 'extract_runner_package':
     path    => '/usr/bin',
+    user    => $package_directory_owner,
     command => "tar xf ${runner_package_full_path} -C ${runner_package_directory}",
     require => File[$runner_package_directory],
     creates => "${runner_package_directory}/config.sh",
