@@ -37,6 +37,7 @@ class profile::github_runner::package (
     'trivy',
     'unzip',
     'yamllint',
+    'zip',
   ]
   package { $enhancers: ensure => 'installed' }
 }
