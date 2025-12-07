@@ -18,7 +18,7 @@ jobs:
         runs-on: ubuntu-24.04
         strategy:
             matrix:
-                codename: ["noble", "oracular"]
+                codename: ["noble"]
         steps:
             - uses: actions/checkout@v3
             - name: Install InfraHouse APT repository
