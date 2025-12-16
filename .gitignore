@@ -26,3 +26,7 @@ modules/apt/
 modules/firewall/
 modules/stdlib/
 modules/sudo/
+
+# Claude Code local settings
+.claude/*.local.json
+.claude/reviews/
