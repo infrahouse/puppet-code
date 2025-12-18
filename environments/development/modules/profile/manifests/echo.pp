@@ -1,6 +1,8 @@
 # @summary: Configure echo service.
 class profile::echo () {
 
+  include profile::nscd
+
   package { 'xinetd':
     ensure => present
   }
@@ -19,6 +21,7 @@ class profile::echo () {
     require => [
       Package[xinetd],
       Cron['puppet_apply'],
+      Class['profile::nscd'],
     ]
   }
 }

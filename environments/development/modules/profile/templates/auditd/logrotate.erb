@@ -1,0 +1,14 @@
+# Managed by Puppet
+# Logrotate configuration for audit logs
+
+/var/log/audit/*.log {
+    daily
+    rotate 365
+    compress
+    delaycompress
+    notifempty
+    create 0600 root root
+    postrotate
+        /usr/sbin/service auditd rotate
+    endscript
+}
