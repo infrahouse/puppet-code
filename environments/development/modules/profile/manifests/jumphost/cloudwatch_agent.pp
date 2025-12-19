@@ -1,5 +1,10 @@
 # CloudWatch agent configuration for Jumphost
-class profile::jumphost::cloudwatch_agent {
+#
+# @param audit_log_file Path to the audit log file (should match profile::auditd::log_file)
+#
+class profile::jumphost::cloudwatch_agent (
+  String $audit_log_file = '/var/log/audit/audit.log',
+) {
 
   # Only configure if CloudWatch log group is provided via Terraform facts
   if $facts['jumphost'] and $facts['jumphost']['cloudwatch_log_group'] {
@@ -7,6 +12,7 @@ class profile::jumphost::cloudwatch_agent {
     $cloudwatch_log_group = $facts['jumphost']['cloudwatch_log_group']
     $config_dir = '/etc/aws'
     $config_file = "${config_dir}/amazon-cloudwatch-agent.json"
+    $audit_log_dir = dirname($audit_log_file)
 
     # Ensure config directory exists
     file { $config_dir:
@@ -37,14 +43,36 @@ class profile::jumphost::cloudwatch_agent {
       ensure => installed,
     }
 
+    # Deploy ACL setup script
+    file { '/usr/local/bin/set-audit-acl':
+      ensure  => file,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template('profile/jumphost/set-audit-acl.sh.erb'),
+    }
+
+    # Deploy ACL verification script
+    file { '/usr/local/bin/check-audit-acl':
+      ensure  => file,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template('profile/jumphost/check-audit-acl.sh.erb'),
+    }
+
     # Allow CloudWatch agent to read audit logs
-    # Set ACL on audit log directory so cwagent user can read logs
+    # Set ACL on audit log directory and files so cwagent user can read logs
+    # Note: Depends on sudo class (managed separately) for ACL verification
     exec { 'set-audit-log-acl':
-      command => '/usr/bin/setfacl -R -m u:cwagent:r-x /var/log/audit && /usr/bin/setfacl -d -m u:cwagent:r-x /var/log/audit',
-      unless  => '/usr/bin/getfacl /var/log/audit 2>/dev/null | /usr/bin/grep -q "user:cwagent:r-x"',
+      command => '/usr/local/bin/set-audit-acl',
+      unless  => '/usr/local/bin/check-audit-acl',
       require => [
+        Class['sudo'],
         Package['acl'],
         User['cwagent'],
+        File['/usr/local/bin/set-audit-acl'],
+        File['/usr/local/bin/check-audit-acl'],
       ],
     }
 

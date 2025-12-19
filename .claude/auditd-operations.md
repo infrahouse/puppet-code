@@ -237,6 +237,116 @@ sudo ausearch -k ssh_keys
 sudo ausearch -k sudoers_changes
 ```
 
+#### SSH Brute Force Attack Investigation
+
+**Symptoms**: High number of failed logins in aureport
+
+```bash
+# 1. Check overall login statistics
+sudo aureport | grep -E "failed logins|logins"
+# Look for high failure-to-success ratio (e.g., 272:4)
+
+# 2. Identify attacking IPs
+sudo ausearch -m USER_LOGIN -sv no | grep -oP 'addr=\S+' | sort | uniq -c | sort -rn
+# Output shows: count + IP address
+
+# 3. View detailed failed attempts
+sudo ausearch -m USER_LOGIN -sv no -i | head -50
+# Look for: acct=(invalid user), res=failed, addr=<IP>
+
+# 4. Check authentication failures summary
+sudo aureport -au --failed --summary
+
+# 5. Time-based analysis
+sudo aureport -au --failed -i
+# Shows when attacks occurred
+```
+
+**Verify SSH Security (CRITICAL)**:
+```bash
+# Check active SSH configuration (not just file)
+sudo sshd -T | grep -E "(passwordauthentication|pubkeyauthentication|permitrootlogin)"
+
+# Expected SECURE values:
+# passwordauthentication no           ← CRITICAL: Passwords disabled
+# pubkeyauthentication yes            ← SSH keys enabled
+# permitrootlogin without-password    ← Root requires keys
+
+# If passwordauthentication is "yes" - IMMEDIATE ACTION REQUIRED!
+```
+
+**Risk Assessment**:
+
+**LOW RISK** (all conditions must be true):
+- ✓ `passwordauthentication no`
+- ✓ Failed logins show `acct=(invalid user)`
+- ✓ All attempts show `res=failed`
+- ✓ Attackers trying random usernames
+
+**HIGH RISK** (any condition true):
+- ⚠️ `passwordauthentication yes` - Passwords enabled!
+- ⚠️ Failed logins targeting real usernames
+- ⚠️ Successful logins from unknown IPs
+- ⚠️ Thousands of attempts from single IP
+
+**Immediate Mitigation (if HIGH RISK)**:
+```bash
+# 1. Disable password authentication NOW
+sudo sed -i 's/^#*PasswordAuthentication.*/PasswordAuthentication no/' /etc/ssh/sshd_config
+echo "PasswordAuthentication no" | sudo tee -a /etc/ssh/sshd_config
+
+# 2. Restart SSH (existing connections stay alive)
+sudo systemctl reload sshd
+
+# 3. Verify change applied
+sudo sshd -T | grep passwordauthentication
+
+# 4. Block attacking IPs (temporary)
+sudo iptables -A INPUT -s 78.70.234.20 -j DROP
+sudo iptables -A INPUT -s 82.67.140.251 -j DROP
+```
+
+**Long-term Solutions**:
+```bash
+# Install fail2ban (auto-blocks after failures)
+sudo apt install fail2ban
+
+# Configure SSH hardening in /etc/ssh/sshd_config:
+# MaxAuthTries 3
+# MaxStartups 10:30:60
+# LoginGraceTime 30
+
+# Optional: Change SSH port (reduces bot scans)
+# Port 2222
+
+# Optional: Restrict to specific users/groups
+# AllowUsers alice bob
+# AllowGroups sshusers
+```
+
+**Documentation**:
+```bash
+# Create incident report
+cat > /tmp/ssh-attack-report.txt <<EOF
+Date: $(date)
+Attack IPs: $(sudo ausearch -m USER_LOGIN -sv no | grep -oP 'addr=\S+' | sort -u | paste -sd,)
+Failed Attempts: $(sudo ausearch -m USER_LOGIN -sv no | wc -l)
+Targeted Accounts: $(sudo ausearch -m USER_LOGIN -sv no | grep -oP "acct=\S+" | sort -u | head -10 | paste -sd,)
+SSH Config: passwordauth=$(sudo sshd -T | grep passwordauthentication)
+Risk Level: [LOW/HIGH]
+Actions Taken: [List actions]
+EOF
+
+# Send to security team
+cat /tmp/ssh-attack-report.txt
+```
+
+**Expected Behavior for Jumphosts**:
+- Failed login attempts are **normal** for internet-exposed SSH
+- Typical: 10-50 failed attempts per hour from bot scanners
+- With `passwordauthentication no`, these are harmless
+- Audit logging captures everything for compliance
+
 ### Generate Compliance Reports
 
 #### Monthly SOC2 Report
