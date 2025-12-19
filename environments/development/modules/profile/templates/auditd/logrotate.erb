@@ -1,13 +1,13 @@
 # Managed by Puppet
 # Logrotate configuration for audit logs
 
-/var/log/audit/*.log {
+<%= File.dirname(@log_file) %>/*.log {
     daily
     rotate 365
     compress
     delaycompress
     notifempty
-    create 0600 root root
+    create <%= @log_file_mode %> <%= @log_file_owner %> <%= @log_file_group %>
     postrotate
         /usr/sbin/service auditd rotate
     endscript
