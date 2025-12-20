@@ -8,12 +8,10 @@
 #
 class profile::jumphost::custom_metrics {
 
-  # Get EC2 instance hostname (short name, e.g., "ip-10-1-101-70")
-  $ec2_hostname = split($facts['networking']['hostname'], '\.')[0]
-  $environment = $facts['environment']
-
-  # Get AWS region from EC2 metadata
+  # Variables for template
+  $ec2_hostname = $facts['networking']['hostname']
   $region = $facts['ec2_metadata']['placement']['region']
+  # $environment is a built-in Puppet variable, available in template scope
 
   # Deploy metrics collection script
   file { '/usr/local/bin/publish-jumphost-metrics':
@@ -22,7 +20,6 @@ class profile::jumphost::custom_metrics {
     group   => 'root',
     mode    => '0755',
     content => template('profile/jumphost/publish-jumphost-metrics.sh.erb'),
-    require => Package['awscli'],
   }
 
   # Create state directory for tracking deltas
