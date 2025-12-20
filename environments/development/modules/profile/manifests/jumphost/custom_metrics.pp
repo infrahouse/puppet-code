@@ -11,6 +11,7 @@ class profile::jumphost::custom_metrics {
   # Variables for template
   $ec2_hostname = $facts['networking']['hostname']
   $region = $facts['ec2_metadata']['placement']['region']
+  $cloudwatch_namespace = $facts['jumphost']['cloudwatch_namespace']
   # $environment is a built-in Puppet variable, available in template scope
 
   # Deploy metrics collection script
