@@ -94,16 +94,16 @@ check_failed_logins() {
     previous_timestamp=$(cat "${state_file}" 2>/dev/null || echo "0")
 
     # Count failed login attempts since last check
-    # Look in auth.log for failed password attempts
+    # Matches: "Failed password" (wrong password) and "Invalid user" (nonexistent user)
     if [[ ${previous_timestamp} -eq 0 ]]; then
-        # First run - just count from last 60 seconds
-        failed_count=$(grep "Failed password" /var/log/auth.log 2>/dev/null | \
+        # First run - just count from last 100 lines
+        failed_count=$(grep -E "Failed password|Invalid user" /var/log/auth.log 2>/dev/null | \
             tail -100 | wc -l)
     else
         # Use journalctl for accurate time-based filtering
         # grep -c always outputs a count (even if 0), so no fallback needed
         failed_count=$(journalctl -u ssh.service --since="@${previous_timestamp}" 2>/dev/null | \
-            grep -c "Failed password" || true)
+            grep -cE "Failed password|Invalid user" || true)
     fi
 
     # Save current timestamp for next run
