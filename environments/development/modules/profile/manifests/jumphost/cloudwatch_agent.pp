@@ -99,7 +99,10 @@ class profile::jumphost::cloudwatch_agent (
       command     => "/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
 -a fetch-config -m ec2 -s -c file:${config_file}",
       refreshonly => true,
-      require     => File[$config_file],
+      require     => [
+        File[$config_file],
+        User['cwagent'],
+      ],
     }
 
     # Ensure CloudWatch agent service is running
@@ -108,6 +111,7 @@ class profile::jumphost::cloudwatch_agent (
       enable  => true,
       require => [
         Package['amazon-cloudwatch-agent'],
+        User['cwagent'],
         Exec['configure-cloudwatch-agent-jumphost'],
       ],
     }
