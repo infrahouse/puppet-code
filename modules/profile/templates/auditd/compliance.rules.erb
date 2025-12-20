@@ -1,0 +1,128 @@
+# Managed by Puppet
+# Compliance-specific rules for SOC2/ISO27001
+
+# ============================================================
+# SOC2 TRUST SERVICES CRITERIA
+# ============================================================
+
+# CC6.1 - Logical Access Controls
+# Monitor all authentication attempts
+-a always,exit -F arch=b64 -S open -S openat -F dir=/etc/passwd -F perm=r -k user_enumeration
+-a always,exit -F arch=b32 -S open -S openat -F dir=/etc/passwd -F perm=r -k user_enumeration
+
+# CC6.2 - Monitor privileged operations
+-a always,exit -F arch=b64 -F auid=0 -S execve -k root_commands
+-a always,exit -F arch=b32 -F auid=0 -S execve -k root_commands
+
+# CC6.8 - Prevention of unauthorized access
+-a always,exit -F arch=b64 -S open -F dir=/etc -F success=0 -k unauthorized_file_access
+-a always,exit -F arch=b32 -S open -F dir=/etc -F success=0 -k unauthorized_file_access
+
+# CC7.1 - Monitor system changes
+-w /etc/ -p wa -k system_configuration_changes
+
+# CC8.1 - Change Management
+-w /usr/local/bin/ -p wa -k software_changes
+-w /usr/local/sbin/ -p wa -k software_changes
+-w /opt/ -p wa -k software_changes
+
+# ============================================================
+# ISO 27001:2022 CONTROLS
+# ============================================================
+
+# A.8.15 - Logging
+# Already covered by base rules
+
+# A.8.16 - Monitoring activities
+# Monitor cron jobs
+-w /var/spool/cron/ -p wa -k cron_changes
+-w /etc/cron.allow -p wa -k cron_changes
+-w /etc/cron.deny -p wa -k cron_changes
+-w /etc/cron.d/ -p wa -k cron_changes
+-w /etc/cron.daily/ -p wa -k cron_changes
+-w /etc/cron.hourly/ -p wa -k cron_changes
+-w /etc/cron.monthly/ -p wa -k cron_changes
+-w /etc/cron.weekly/ -p wa -k cron_changes
+-w /etc/crontab -p wa -k cron_changes
+
+# A.8.17 - Clock synchronization
+# Time changes monitoring (covered in base)
+
+# A.8.32 - Change management
+# Monitor package management
+-w /usr/bin/apt -p x -k package_management
+-w /usr/bin/apt-get -p x -k package_management
+-w /usr/bin/dpkg -p x -k package_management
+-w /usr/bin/snap -p x -k package_management
+-w /var/log/dpkg.log -p wa -k package_changes
+
+# A.5.15 - Access control
+# Monitor access control changes (covered in base)
+
+# A.5.16 - Identity management
+# Monitor user/group management commands
+-w /usr/sbin/useradd -p x -k user_management
+-w /usr/sbin/usermod -p x -k user_management
+-w /usr/sbin/userdel -p x -k user_management
+-w /usr/sbin/groupadd -p x -k group_management
+-w /usr/sbin/groupmod -p x -k group_management
+-w /usr/sbin/groupdel -p x -k group_management
+
+# ============================================================
+# DATA PROTECTION REGULATIONS (GDPR, etc.)
+# ============================================================
+
+# Monitor access to potentially sensitive data locations
+# NOTE: Broad read monitoring (-p r) on /var/lib/, /var/www/, /home/ is extremely
+# verbose and can generate 100+ MB of logs per day. Only enable if you need it
+# for specific compliance requirements. Instead, monitor write access only or
+# specific subdirectories.
+# -w /var/lib/ -p r -k data_access
+# -w /var/www/ -p r -k data_access
+# -w /home/ -p r -k data_access
+
+# ============================================================
+# SECURITY INCIDENT DETECTION
+# ============================================================
+
+# Monitor for suspicious activities
+# Failed open attempts on critical files
+# NOTE: Monitoring ALL failed opens is extremely verbose (1000+ events/hour)
+# because normal processes probe for config files that don't exist.
+# Targeted monitoring for failed access to /etc is already provided above
+# (line 18-19: unauthorized_file_access).
+# Uncomment only if you need complete failed access tracking:
+# -a always,exit -F arch=b64 -S open -S openat -F exit=-EACCES -k access_denied
+# -a always,exit -F arch=b64 -S open -S openat -F exit=-EPERM -k access_denied
+# -a always,exit -F arch=b32 -S open -S openat -F exit=-EACCES -k access_denied
+# -a always,exit -F arch=b32 -S open -S openat -F exit=-EPERM -k access_denied
+
+# Monitor network connections (for detecting backdoors)
+# NOTE: This is EXTREMELY verbose (300+ events/sec on a busy jumphost) due to:
+# - SSH keepalives, DNS lookups, NTP, CloudWatch agent, system services
+# - Causes massive audit log growth and event loss
+# Instead, monitor suspicious network activity via other means:
+# - Netflow/VPC Flow Logs, anomaly detection, specific port monitoring
+# Uncomment only if you need complete network syscall tracking:
+# -a always,exit -F arch=b64 -S connect -S bind -k network_connections
+# -a always,exit -F arch=b32 -S connect -S bind -k network_connections
+
+# Monitor process injection attempts
+-a always,exit -F arch=b64 -S ptrace -k process_injection
+-a always,exit -F arch=b32 -S ptrace -k process_injection
+
+# ============================================================
+# COMPLIANCE REPORTING HELPERS
+# ============================================================
+
+# Tag all sudo commands for easy reporting
+-a always,exit -F arch=b64 -C euid!=uid -F auid!=4294967295 -S execve -k sudo_commands
+-a always,exit -F arch=b32 -C euid!=uid -F auid!=4294967295 -S execve -k sudo_commands
+
+# Tag all root actions for reporting
+# NOTE: This logs EVERY process execution by uid=0, including system daemons
+# (cron, xinetd, systemd services, etc.) and is extremely verbose.
+# The sudo_commands rule above already captures privilege escalation.
+# Uncomment only if you need complete root process tracking:
+# -a always,exit -F arch=b64 -F uid=0 -S execve -k root_actions
+# -a always,exit -F arch=b32 -F uid=0 -S execve -k root_actions

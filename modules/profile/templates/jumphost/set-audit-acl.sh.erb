@@ -1,0 +1,19 @@
+#!/bin/bash
+# Managed by Puppet
+# Set ACLs on audit log directory and files for CloudWatch agent access
+
+set -e
+
+AUDIT_LOG_DIR="<%= @audit_log_dir %>"
+
+# Set ACL on existing files and directories (recursive)
+# -R: recursive, -m: modify ACL
+# u:cwagent:r-x - allow cwagent user to read and traverse
+# m::r-x - set mask to allow r-x effective permissions
+/usr/bin/setfacl -R -m u:cwagent:r-x,m::r-x "${AUDIT_LOG_DIR}"
+
+# Set default ACL for new files (inherited by files created in the future)
+# -d: default ACL
+/usr/bin/setfacl -d -m u:cwagent:r-x,m::r-x "${AUDIT_LOG_DIR}"
+
+echo "ACLs set successfully on ${AUDIT_LOG_DIR}"
