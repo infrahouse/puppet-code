@@ -1,3 +1,9 @@
+puppet-code (0.1.0-1build256) noble; urgency=medium
+
+  * commit event. see changes history in git log
+
+ -- root <packager@infrahouse.com>  Sat, 20 Dec 2025 21:14:33 +0000
+
 puppet-code (0.1.0-1build255) noble; urgency=medium
 
   * commit event. see changes history in git log

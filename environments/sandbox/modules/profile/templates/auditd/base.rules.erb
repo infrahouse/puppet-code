@@ -1,0 +1,142 @@
+# Managed by Puppet
+# Base audit rules - apply to ALL systems
+
+# First rule - delete all
+-D
+
+# Increase the buffers to survive stress events.
+# Make this bigger for busy systems (jumphosts need 64k+ to handle high traffic)
+-b 65536
+
+# Failure handling (1 = printk, 2 = panic)
+-f 1
+
+# Rate limit audit messages (0 = unlimited, recommended for jumphosts)
+-r 0
+
+# ============================================================
+# SELF AUDITING - Protect the audit system itself
+# ============================================================
+
+# Audit the audit logs
+-w /var/log/audit/ -p wa -k audit_logs
+
+# Audit audit configuration
+-w /etc/audit/ -p wa -k audit_config
+-w /etc/libaudit.conf -p wa -k audit_config
+-w /etc/audisp/ -p wa -k audit_config
+
+# Monitor audit tools
+-w /sbin/auditctl -p x -k audit_tools
+-w /sbin/auditd -p x -k audit_tools
+-w /sbin/ausearch -p x -k audit_tools
+-w /sbin/aureport -p x -k audit_tools
+-w /sbin/autrace -p x -k audit_tools
+-w /sbin/augenrules -p x -k audit_tools
+
+# ============================================================
+# AUTHENTICATION AND AUTHORIZATION
+# ============================================================
+
+# Login/Logout events
+-w /var/log/wtmp -p wa -k session
+-w /var/log/btmp -p wa -k session
+-w /var/log/faillog -p wa -k auth_failures
+-w /var/log/lastlog -p wa -k login
+-w /var/log/tallylog -p wa -k login
+
+# Authentication
+-w /etc/pam.d/ -p wa -k auth_config
+-w /etc/security/ -p wa -k auth_config
+
+# Password changes
+-w /etc/passwd -p wa -k passwd_changes
+-w /etc/shadow -p wa -k shadow_changes
+-w /etc/group -p wa -k group_changes
+-w /etc/gshadow -p wa -k gshadow_changes
+-w /etc/security/opasswd -p wa -k opasswd_changes
+
+# Sudo configuration
+-w /etc/sudoers -p wa -k sudoers_changes
+-w /etc/sudoers.d/ -p wa -k sudoers_changes
+
+# SSH configuration
+-w /etc/ssh/sshd_config -p wa -k sshd_config
+-w /root/.ssh/ -p wa -k ssh_keys
+
+# ============================================================
+# SYSTEM CONFIGURATION
+# ============================================================
+
+# Network configuration
+-w /etc/hosts -p wa -k network_config
+-w /etc/hostname -p wa -k network_config
+-w /etc/network/ -p wa -k network_config
+-w /etc/netplan/ -p wa -k network_config
+-w /etc/systemd/network/ -p wa -k network_config
+
+# System startup
+-w /etc/rc.local -p wa -k init_config
+-w /etc/systemd/ -p wa -k systemd_config
+-w /etc/inittab -p wa -k init_config
+-w /etc/init/ -p wa -k init_config
+
+# Kernel modules
+-w /etc/modprobe.conf -p wa -k kernel_modules
+-w /etc/modprobe.d/ -p wa -k kernel_modules
+-w /etc/modules-load.d/ -p wa -k kernel_modules
+-a always,exit -F arch=b64 -S init_module -S finit_module -S delete_module -k kernel_modules
+-a always,exit -F arch=b32 -S init_module -S finit_module -S delete_module -k kernel_modules
+
+# Time configuration
+-w /etc/localtime -p wa -k time_config
+-w /etc/timezone -p wa -k time_config
+-a always,exit -F arch=b64 -S adjtimex -S settimeofday -S clock_settime -k time_change
+-a always,exit -F arch=b32 -S adjtimex -S settimeofday -S clock_settime -k time_change
+
+# ============================================================
+# CRITICAL SYSTEM BINARIES
+# ============================================================
+
+-w /usr/sbin/ -p wa -k system_binaries
+-w /usr/bin/ -p wa -k system_binaries
+-w /sbin/ -p wa -k system_binaries
+-w /bin/ -p wa -k system_binaries
+
+# ============================================================
+# SYSTEM CALLS - Track important system calls
+# ============================================================
+
+# File deletion by users
+-a always,exit -F arch=b64 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k file_deletion
+-a always,exit -F arch=b32 -S unlink -S unlinkat -S rename -S renameat -F auid>=1000 -F auid!=4294967295 -k file_deletion
+
+# Privilege escalation
+# NOTE: Tracking setuid/setgid syscalls is extremely verbose (200+ events/sec)
+# because they fire on EVERY sudo, su, cron job, and privilege change.
+# More targeted privilege escalation monitoring is provided by:
+#   - compliance.rules.erb: sudo commands (euid!=uid)
+#   - jumphost.rules.erb: sudo/su command execution
+# Uncomment only if you need complete setuid/setgid syscall tracking:
+# -a always,exit -F arch=b64 -S setuid -S setgid -S setreuid -S setregid -k privilege_escalation
+# -a always,exit -F arch=b32 -S setuid -S setgid -S setreuid32 -S setregid32 -k privilege_escalation
+
+# Network modifications (hostname changes)
+-a always,exit -F arch=b64 -S sethostname -S setdomainname -k network_modifications
+-a always,exit -F arch=b32 -S sethostname -S setdomainname -k network_modifications
+
+# Process tracking
+# NOTE: Tracking ALL execve syscalls is extremely verbose (50+ events/min)
+# and logs every process execution including system daemons.
+# More targeted process monitoring is provided by:
+#   - compliance.rules.erb: sudo commands (euid!=uid)
+#   - jumphost.rules.erb: user commands (auid>=1000)
+# Uncomment only if you need complete process execution tracking:
+# -a always,exit -F arch=b64 -S execve -k process_execution
+# -a always,exit -F arch=b32 -S execve -k process_execution
+
+# ============================================================
+# MAKE RULES IMMUTABLE (must be last rule)
+# ============================================================
+# Uncomment to make rules immutable (requires reboot to change)
+# -e 2

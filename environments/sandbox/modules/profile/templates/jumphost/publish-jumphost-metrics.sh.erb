@@ -1,0 +1,126 @@
+#!/usr/bin/env bash
+# CloudWatch Custom Metrics for Jumphost
+# Publishes: ServiceStatus, DiskSpaceUsed, AuditEventsLost, FailedLogins
+#
+# This script is managed by Puppet - do not edit manually
+
+set -euo pipefail
+
+# Configuration
+NAMESPACE="<%= @cloudwatch_namespace %>"
+REGION="<%= @region %>"
+HOSTNAME="<%= @ec2_hostname %>"
+ENVIRONMENT="<%= @environment %>"
+STATE_DIR="/var/run/jumphost-metrics"
+
+# Ensure state directory exists
+mkdir -p "${STATE_DIR}"
+
+# Publish a metric to CloudWatch
+publish_metric() {
+    local metric_name="$1"
+    local value="$2"
+    local unit="${3:-None}"
+
+    aws cloudwatch put-metric-data \
+        --region "${REGION}" \
+        --namespace "${NAMESPACE}" \
+        --metric-name "${metric_name}" \
+        --value "${value}" \
+        --unit "${unit}" \
+        --dimensions "Hostname=${HOSTNAME},Environment=${ENVIRONMENT}" \
+        2>/dev/null || echo "Warning: Failed to publish ${metric_name}" >&2
+}
+
+# Metric 1: ServiceStatus - Check if auditd is running
+check_service_status() {
+    if pidof auditd >/dev/null 2>&1; then
+        publish_metric "ServiceStatus" "1" "None"
+    else
+        publish_metric "ServiceStatus" "0" "None"
+    fi
+}
+
+# Metric 2: DiskSpaceUsed - Root filesystem usage percentage
+check_disk_usage() {
+    local disk_used
+    disk_used=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
+
+    if [[ -n "${disk_used}" ]]; then
+        publish_metric "DiskSpaceUsed" "${disk_used}" "Percent"
+    fi
+}
+
+# Metric 3: AuditEventsLost - Delta of lost audit events
+check_audit_events_lost() {
+    local state_file="${STATE_DIR}/audit-lost-count.txt"
+    local current_lost
+    local previous_lost
+    local delta_lost
+
+    # Get current lost count from auditctl
+    current_lost=$(auditctl -s 2>/dev/null | grep '^lost' | awk '{print $2}' || echo "0")
+
+    # Get previous count
+    previous_lost=$(cat "${state_file}" 2>/dev/null || echo "0")
+
+    # Calculate delta
+    delta_lost=$((current_lost - previous_lost))
+
+    # Ensure delta is not negative (counter reset)
+    if [[ ${delta_lost} -lt 0 ]]; then
+        delta_lost=0
+    fi
+
+    # Save current count for next run
+    echo "${current_lost}" > "${state_file}"
+
+    # Only publish if there were lost events
+    if [[ ${delta_lost} -gt 0 ]]; then
+        publish_metric "AuditEventsLost" "${delta_lost}" "Count"
+    fi
+}
+
+# Metric 4: FailedLogins - Count of failed SSH login attempts
+check_failed_logins() {
+    local state_file="${STATE_DIR}/failed-logins-timestamp.txt"
+    local current_timestamp
+    local previous_timestamp
+    local failed_count
+
+    current_timestamp=$(date +%s)
+
+    # Get previous timestamp
+    previous_timestamp=$(cat "${state_file}" 2>/dev/null || echo "0")
+
+    # Count failed login attempts since last check
+    # Matches: "Failed password" (wrong password) and "Invalid user" (nonexistent user)
+    if [[ ${previous_timestamp} -eq 0 ]]; then
+        # First run - just count from last 100 lines
+        failed_count=$(grep -E "Failed password|Invalid user" /var/log/auth.log 2>/dev/null | \
+            tail -100 | wc -l)
+    else
+        # Use journalctl for accurate time-based filtering
+        # grep -c always outputs a count (even if 0), so no fallback needed
+        failed_count=$(journalctl -u ssh.service --since="@${previous_timestamp}" 2>/dev/null | \
+            grep -cE "Failed password|Invalid user" || true)
+    fi
+
+    # Save current timestamp for next run
+    echo "${current_timestamp}" > "${state_file}"
+
+    # Only publish if there were failed logins
+    if [[ ${failed_count} -gt 0 ]]; then
+        publish_metric "FailedLogins" "${failed_count}" "Count"
+    fi
+}
+
+# Main execution
+main() {
+    check_service_status
+    check_disk_usage
+    check_audit_events_lost
+    check_failed_logins
+}
+
+main "$@"

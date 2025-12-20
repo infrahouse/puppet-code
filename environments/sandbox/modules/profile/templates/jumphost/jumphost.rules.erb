@@ -1,0 +1,109 @@
+# Managed by Puppet
+# Jumphost-specific audit rules
+# Critical for SOC2/ISO27001 - Jumphosts are high-value targets
+
+# ============================================================
+# SSH SESSION MONITORING - CRITICAL FOR JUMPHOSTS
+# ============================================================
+
+# Monitor SSH authentication attempts
+-w /var/log/auth.log -p wa -k ssh_authentication
+# Note: /var/log/btmp and /var/log/wtmp are already monitored in base.rules.erb
+
+# Monitor SSH configuration changes
+# Note: /etc/ssh/sshd_config is already monitored in base.rules.erb
+-w /etc/ssh/ssh_config -p wa -k ssh_config_changes
+
+# Monitor SSH keys
+# Note: /root/.ssh/ is already monitored in base.rules.erb
+# Note: Cannot watch /home/*/authorized_keys with -w rules (no wildcard support)
+# Consider monitoring via syscall rules if needed
+
+# Track SSH daemon execution
+-w /usr/sbin/sshd -p x -k sshd_execution
+
+# ============================================================
+# PRIVILEGED COMMAND EXECUTION
+# ============================================================
+
+# Track commands run by non-system users (UID >= 1000)
+-a always,exit -F arch=b64 -S execve -F auid>=1000 -F auid!=4294967295 -k user_commands
+
+# Track sudo usage
+-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/sudo -k sudo_usage
+
+# Track su usage
+-a always,exit -F arch=b64 -S execve -F exe=/bin/su -k su_usage
+-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/su -k su_usage
+
+# ============================================================
+# OUTBOUND CONNECTION MONITORING
+# ============================================================
+
+# Track SSH client connections (users connecting to other servers)
+-a always,exit -F arch=b64 -S connect -F auid>=1000 -F auid!=4294967295 -k user_network_activity
+
+# ============================================================
+# FILE TRANSFER MONITORING
+# ============================================================
+
+# Monitor SCP/SFTP/rsync activities
+-w /usr/bin/scp -p x -k file_transfer_scp
+-w /usr/bin/sftp -p x -k file_transfer_sftp
+-w /usr/bin/rsync -p x -k file_transfer_rsync
+
+# Monitor potential data exfiltration tools
+-w /usr/bin/curl -p x -k data_transfer_curl
+-w /usr/bin/wget -p x -k data_transfer_wget
+
+# ============================================================
+# SYSTEM RECONNAISSANCE DETECTION
+# ============================================================
+
+# Track common reconnaissance commands
+-w /usr/bin/whoami -p x -k recon_whoami
+-w /usr/bin/id -p x -k recon_id
+-w /usr/bin/hostname -p x -k recon_hostname
+-w /bin/uname -p x -k recon_uname
+-w /bin/ps -p x -k recon_ps
+-w /bin/netstat -p x -k recon_netstat
+-w /usr/bin/ss -p x -k recon_ss
+-w /sbin/ifconfig -p x -k recon_ifconfig
+-w /sbin/ip -p x -k recon_ip
+
+# ============================================================
+# SHELL HISTORY MONITORING
+# ============================================================
+
+# Track shell history manipulation
+-w /root/.bash_history -p wa -k root_shell_history
+# Note: Cannot watch /home/*/.bash_history with -w rules (no wildcard support)
+# Consider monitoring via syscall rules if needed
+
+# ============================================================
+# TERMINAL MULTIPLEXERS
+# ============================================================
+
+# Track terminal multiplexers (can be used to hide activities)
+-w /usr/bin/screen -p x -k terminal_screen
+-w /usr/bin/tmux -p x -k terminal_tmux
+
+# ============================================================
+# CRITICAL FILE ACCESS
+# ============================================================
+
+# Monitor password/shadow file access (read-only monitoring)
+# Note: Write monitoring for these files is in base.rules.erb
+-w /etc/passwd -p r -k passwd_read
+-w /etc/shadow -p r -k shadow_read
+
+# Note: /etc/sudoers and /etc/sudoers.d/ are already monitored in base.rules.erb
+
+# ============================================================
+# AWS CREDENTIALS (if jumphost has AWS access)
+# ============================================================
+
+# Monitor AWS credentials access
+-w /root/.aws/ -p r -k root_aws_credentials
+# Note: Cannot watch /home/*/.aws/credentials with -w rules (no wildcard support)
+# Consider monitoring via syscall rules if needed
