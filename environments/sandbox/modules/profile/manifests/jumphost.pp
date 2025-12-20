@@ -2,6 +2,11 @@
 class profile::jumphost () {
   include 'profile::echo'
 
+  # Jumphost-specific monitoring and logging
+  include profile::jumphost::auditd
+  include profile::jumphost::cloudwatch_agent
+  include profile::jumphost::custom_metrics
+
   $ssh_service = ($facts['os']['name'] == 'Ubuntu' and $facts['os']['release']['major'] == '24.04') ? {
     true  => 'ssh',
     false => 'sshd',
