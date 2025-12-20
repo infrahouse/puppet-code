@@ -10,6 +10,7 @@ class profile::jumphost::cloudwatch_agent (
   if $facts['jumphost'] and $facts['jumphost']['cloudwatch_log_group'] {
 
     $cloudwatch_log_group = $facts['jumphost']['cloudwatch_log_group']
+    $cloudwatch_namespace = $facts['jumphost']['cloudwatch_namespace']
     $config_dir = '/etc/aws'
     $config_file = "${config_dir}/amazon-cloudwatch-agent.json"
     $audit_log_dir = dirname($audit_log_file)
