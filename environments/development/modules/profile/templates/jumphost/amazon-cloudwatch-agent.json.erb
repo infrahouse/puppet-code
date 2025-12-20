@@ -3,7 +3,7 @@
     "metrics_collection_interval": 60,
     "run_as_user": "cwagent",
     "buffer_time": 10000,
-    "omit_hostname": false
+    "omit_hostname": true
   },
   "logs": {
     "logs_collected": {
@@ -71,6 +71,15 @@
   "metrics": {
     "namespace": "Jumphost/System",
     "metrics_collected": {
+      "procstat": [
+        {
+          "pattern": "auditd",
+          "measurement": [
+            "pid_count"
+          ],
+          "metrics_collection_interval": 60
+        }
+      ],
       "cpu": {
         "measurement": [
           {
@@ -105,12 +114,17 @@
             "unit": "Percent"
           },
           {
+            "name": "used_percent",
+            "rename": "DiskSpaceUsed",
+            "unit": "Percent"
+          },
+          {
             "name": "inodes_free",
             "rename": "DISK_INODES_FREE",
             "unit": "Count"
           }
         ],
-        "metrics_collection_interval": 60,
+        "metrics_collection_interval": 300,
         "resources": [
           "/"
         ]
@@ -200,6 +214,10 @@
         ],
         "metrics_collection_interval": 60
       }
+    },
+    "append_dimensions": {
+      "Hostname": "<%= @ec2_hostname %>",
+      "Environment": "<%= @environment %>"
     }
   }
 }

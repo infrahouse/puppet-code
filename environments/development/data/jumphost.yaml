@@ -1,5 +1,3 @@
 ---
 classes:
   - role::jumphost
-  - profile::jumphost::auditd        # Phase 1.1: Audit logging for compliance
-  - profile::jumphost::cloudwatch_agent  # CloudWatch integration (facts detected)

@@ -13,6 +13,7 @@ class profile::jumphost::cloudwatch_agent (
     $config_dir = '/etc/aws'
     $config_file = "${config_dir}/amazon-cloudwatch-agent.json"
     $audit_log_dir = dirname($audit_log_file)
+    $ec2_hostname = $facts['networking']['hostname']
 
     # Ensure config directory exists
     file { $config_dir:
@@ -87,7 +88,10 @@ class profile::jumphost::cloudwatch_agent (
         File[$config_dir],
         Package['amazon-cloudwatch-agent'],
       ],
-      notify  => Exec['configure-cloudwatch-agent-jumphost'],
+      notify  => [
+        Exec['configure-cloudwatch-agent-jumphost'],
+        Service['amazon-cloudwatch-agent'],
+      ],
     }
 
     # Configure and start CloudWatch agent
