@@ -1,10 +1,9 @@
 # Custom CloudWatch metrics for Jumphost
 #
 # Publishes security and operational metrics to CloudWatch:
-# - ServiceStatus: auditd process health
-# - DiskSpaceUsed: root filesystem usage
-# - AuditEventsLost: audit event loss detection
-# - FailedLogins: SSH authentication failures
+# - ServiceStatus: auditd process health (1=running, 0=stopped)
+# - AuditEventsLost: delta of lost audit events since last check
+# - FailedLogins: SSH authentication failures (from journalctl)
 #
 class profile::jumphost::custom_metrics {
 
@@ -32,7 +31,6 @@ class profile::jumphost::custom_metrics {
   }
 
   # Schedule metrics collection every minute
-  # (ServiceStatus, AuditEventsLost, FailedLogins need 60s interval)
   cron { 'publish-jumphost-metrics':
     command => '/usr/local/bin/publish-jumphost-metrics',
     user    => 'root',
