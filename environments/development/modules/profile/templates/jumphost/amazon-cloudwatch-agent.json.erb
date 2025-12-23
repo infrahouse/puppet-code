@@ -46,18 +46,6 @@
             "timezone": "UTC"
           },
           {
-            "file_path": "/var/log/btmp",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/auth/failed-logins",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/wtmp",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/auth/successful-logins",
-            "timezone": "UTC"
-          },
-          {
             "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
             "log_group_name": "<%= @cloudwatch_log_group %>",
             "log_stream_name": "{instance_id}/cloudwatch/agent",
