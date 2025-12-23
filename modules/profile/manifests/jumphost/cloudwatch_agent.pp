@@ -31,10 +31,9 @@ class profile::jumphost::cloudwatch_agent (
 
     # Add cwagent user to groups needed to read log files
     # adm: for /var/log/syslog, /var/log/auth.log, /var/log/kern.log
-    # utmp: for /var/log/btmp, /var/log/wtmp
     user { 'cwagent':
       ensure     => present,
-      groups     => ['adm', 'utmp'],
+      groups     => ['adm'],
       membership => minimum,
       require    => Package['amazon-cloudwatch-agent'],
       notify     => Service['amazon-cloudwatch-agent'],
@@ -98,12 +97,13 @@ class profile::jumphost::cloudwatch_agent (
     # Configure and start CloudWatch agent
     exec { 'configure-cloudwatch-agent-jumphost':
       command     => "/opt/aws/amazon-cloudwatch-agent/bin/amazon-cloudwatch-agent-ctl \
--a fetch-config -m ec2 -s -c file:${config_file}",
+-a fetch-config -m ec2 -c file:${config_file}",
       refreshonly => true,
       require     => [
         File[$config_file],
         User['cwagent'],
       ],
+      notify      => Service['amazon-cloudwatch-agent'],
     }
 
     # Ensure CloudWatch agent service is running
