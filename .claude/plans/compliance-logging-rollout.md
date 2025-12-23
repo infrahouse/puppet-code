@@ -18,24 +18,24 @@
 - [x] Create `jumphost/cloudwatch_agent.pp`
 - [x] Create CloudWatch agent config template
 - [x] Fix CloudWatch ACL permissions for audit logs
-- [ ] Deploy to dev jumphost
-- [ ] Validate audit rules: `sudo auditctl -l`
-- [ ] Test SSH session logging
-- [ ] Verify logs in `/var/log/audit/audit.log`
-- [ ] **Release**: `puppet-jumphost-auditd-dev-v1.0.0`
+- [x] Deploy to dev jumphost
+- [x] Validate audit rules: `sudo auditctl -l`
+- [x] Test SSH session logging
+- [x] Verify logs in `/var/log/audit/audit.log`
+- [x] **Release**: `puppet-jumphost-auditd-dev-v1.0.0`
 
 #### 1.2 Sandbox Environment
-- [ ] Copy configuration to sandbox
-- [ ] Deploy to sandbox jumphost
-- [ ] Run compliance validation
-- [ ] Performance impact assessment
-- [ ] **Release**: `puppet-jumphost-auditd-sandbox-v1.0.0`
+- [x] Copy configuration to sandbox
+- [x] Deploy to sandbox jumphost
+- [x] Run compliance validation
+- [x] Performance impact assessment
+- [x] **Release**: `puppet-jumphost-auditd-sandbox-v1.0.0`
 
 #### 1.3 Global Modules (Production)
-- [ ] Move to global modules
-- [ ] Remove environment-specific versions
-- [ ] Deploy to production jumphost
-- [ ] **Release**: `puppet-jumphost-auditd-prod-v1.0.0`
+- [x] Move to global modules
+- [x] Remove environment-specific versions
+- [x] Deploy to production jumphost
+- [x] **Release**: `puppet-jumphost-auditd-prod-v1.0.0`
 
 ### Phase 2: Terraformer
 #### 2.1 Development Environment

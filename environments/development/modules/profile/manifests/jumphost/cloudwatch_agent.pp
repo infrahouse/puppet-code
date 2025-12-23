@@ -31,10 +31,9 @@ class profile::jumphost::cloudwatch_agent (
 
     # Add cwagent user to groups needed to read log files
     # adm: for /var/log/syslog, /var/log/auth.log, /var/log/kern.log
-    # utmp: for /var/log/btmp, /var/log/wtmp
     user { 'cwagent':
       ensure     => present,
-      groups     => ['adm', 'utmp'],
+      groups     => ['adm'],
       membership => minimum,
       require    => Package['amazon-cloudwatch-agent'],
       notify     => Service['amazon-cloudwatch-agent'],
