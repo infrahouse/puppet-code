@@ -1,0 +1,20 @@
+#!/bin/bash
+# Set ACLs on OpenVPN log files so cwagent user can read them
+# Managed by Puppet - profile::openvpn_server::cloudwatch_agent
+
+set -e
+
+OPENVPN_LOG_DIR="/var/log/openvpn"
+
+# Set ACL on directory for read and execute (needed to list/access files)
+setfacl -m u:cwagent:rx "${OPENVPN_LOG_DIR}"
+
+# Set ACL on existing log files for read access
+for log_file in "${OPENVPN_LOG_DIR}"/*.log; do
+    if [ -f "${log_file}" ]; then
+        setfacl -m u:cwagent:r "${log_file}"
+    fi
+done
+
+# Set default ACL so new files inherit read permission for cwagent
+setfacl -d -m u:cwagent:r "${OPENVPN_LOG_DIR}"

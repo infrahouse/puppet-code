@@ -1,56 +1,41 @@
+<%#
+  CloudWatch Agent Configuration Template
+
+  This template generates the CloudWatch agent config for all services.
+  Common logs and metrics are defined in profile::cloudwatch_agent.
+  Service-specific customization is done via parameters:
+    - extra_logs: additional log files to collect
+    - extra_procstat: additional process patterns to monitor
+
+  Metrics are common to all services (CPU, memory, disk, etc.).
+  The only service-specific metrics are procstat patterns.
+  If service-specific metrics are needed in the future, add extra_metrics parameter.
+
+  Variables:
+    @cloudwatch_log_group - CloudWatch log group name
+    @cloudwatch_namespace - CloudWatch metrics namespace
+    @environment - Puppet built-in variable
+    @all_logs - merged array of common + extra logs
+    @all_procstat - merged array of common + extra procstat patterns
+-%>
 {
   "agent": {
     "metrics_collection_interval": 60,
     "run_as_user": "cwagent",
-    "buffer_time": 10000,
-    "omit_hostname": true
+    "buffer_time": 10000
   },
   "logs": {
     "logs_collected": {
       "files": {
         "collect_list": [
+<% @all_logs.each_with_index do |log, index| -%>
           {
-            "file_path": "/var/log/audit/audit.log",
+            "file_path": "<%= log['path'] %>",
             "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/audit/security",
+            "log_stream_name": "{instance_id}/<%= log['stream'] %>",
             "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/auth.log",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/auth/ssh",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/syslog",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/system/syslog",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/kern.log",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/system/kernel",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/dpkg.log",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/system/packages",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/var/log/fail2ban.log",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/security/fail2ban",
-            "timezone": "UTC"
-          },
-          {
-            "file_path": "/opt/aws/amazon-cloudwatch-agent/logs/amazon-cloudwatch-agent.log",
-            "log_group_name": "<%= @cloudwatch_log_group %>",
-            "log_stream_name": "{instance_id}/cloudwatch/agent",
-            "timezone": "UTC"
-          }
+          }<%= index < @all_logs.length - 1 ? ',' : '' %>
+<% end -%>
         ]
       }
     },
@@ -60,13 +45,15 @@
     "namespace": "<%= @cloudwatch_namespace %>",
     "metrics_collected": {
       "procstat": [
+<% @all_procstat.each_with_index do |pattern, index| -%>
         {
-          "pattern": "auditd",
+          "pattern": "<%= pattern %>",
           "measurement": [
             "pid_count"
           ],
           "metrics_collection_interval": 60
-        }
+        }<%= index < @all_procstat.length - 1 ? ',' : '' %>
+<% end -%>
       ],
       "cpu": {
         "measurement": [
@@ -199,8 +186,7 @@
       }
     },
     "append_dimensions": {
-      "Hostname": "<%= @ec2_hostname %>",
-      "Environment": "<%= @environment %>"
+      "environment": "<%= @environment %>"
     }
   }
 }

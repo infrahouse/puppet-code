@@ -1,0 +1,17 @@
+# Logrotate configuration for OpenVPN logs
+# Managed by Puppet - profile::openvpn_server::cloudwatch_agent
+#
+# Reference: https://openvpn.net/community-docs/community-articles/openvpn-2-6-manual.html
+# (see --log option: "persistent over the entire course of an OpenVPN instantiation")
+
+/var/log/openvpn/openvpn.log {
+    weekly
+    rotate 12
+    compress
+    delaycompress
+    missingok
+    notifempty
+    # OpenVPN doesn't reopen log files on SIGHUP, so use copytruncate
+    # instead of moving the file. This copies the log then truncates in place.
+    copytruncate
+}
