@@ -11,6 +11,10 @@
   The only service-specific metrics are procstat patterns.
   If service-specific metrics are needed in the future, add extra_metrics parameter.
 
+  Note: Global append_dimensions only supports AWS metadata variables
+  (ImageId, InstanceId, InstanceType, AutoScalingGroupName).
+  Custom dimensions must be added to each metric type individually.
+
   Variables:
     @cloudwatch_log_group - CloudWatch log group name
     @cloudwatch_namespace - CloudWatch metrics namespace
@@ -51,7 +55,10 @@
           "measurement": [
             "pid_count"
           ],
-          "metrics_collection_interval": 60
+          "metrics_collection_interval": 60,
+          "append_dimensions": {
+            "environment": "<%= @environment %>"
+          }
         }<%= index < @all_procstat.length - 1 ? ',' : '' %>
 <% end -%>
       ],
@@ -79,7 +86,10 @@
           }
         ],
         "metrics_collection_interval": 60,
-        "totalcpu": false
+        "totalcpu": false,
+        "append_dimensions": {
+          "environment": "<%= @environment %>"
+        }
       },
       "disk": {
         "measurement": [
@@ -97,7 +107,10 @@
         "metrics_collection_interval": 300,
         "resources": [
           "/"
-        ]
+        ],
+        "append_dimensions": {
+          "environment": "<%= @environment %>"
+        }
       },
       "diskio": {
         "measurement": [
@@ -117,7 +130,10 @@
             "unit": "Bytes"
           }
         ],
-        "metrics_collection_interval": 60
+        "metrics_collection_interval": 60,
+        "append_dimensions": {
+          "environment": "<%= @environment %>"
+        }
       },
       "mem": {
         "measurement": [
@@ -132,7 +148,10 @@
             "unit": "Bytes"
           }
         ],
-        "metrics_collection_interval": 60
+        "metrics_collection_interval": 60,
+        "append_dimensions": {
+          "environment": "<%= @environment %>"
+        }
       },
       "netstat": {
         "measurement": [
@@ -152,7 +171,10 @@
             "unit": "Count"
           }
         ],
-        "metrics_collection_interval": 60
+        "metrics_collection_interval": 60,
+        "append_dimensions": {
+          "environment": "<%= @environment %>"
+        }
       },
       "processes": {
         "measurement": [
@@ -172,7 +194,10 @@
             "unit": "Count"
           }
         ],
-        "metrics_collection_interval": 60
+        "metrics_collection_interval": 60,
+        "append_dimensions": {
+          "environment": "<%= @environment %>"
+        }
       },
       "swap": {
         "measurement": [
@@ -182,11 +207,15 @@
             "unit": "Percent"
           }
         ],
-        "metrics_collection_interval": 60
+        "metrics_collection_interval": 60,
+        "append_dimensions": {
+          "environment": "<%= @environment %>"
+        }
       }
     },
     "append_dimensions": {
-      "environment": "<%= @environment %>"
+      "InstanceId": "${aws:InstanceId}",
+      "AutoScalingGroupName": "${aws:AutoScalingGroupName}"
     }
   }
 }
