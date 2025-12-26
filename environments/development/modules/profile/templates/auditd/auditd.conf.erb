@@ -36,10 +36,9 @@ disk_full_action = suspend
 disk_error_action = suspend
 
 # Maximum log file size (in MB)
-# Rotation is handled by logrotate, not auditd, so that postrotate hooks
-# can restore ACLs for CloudWatch agent access
+# Auditd handles rotation natively, preserving log_group on new files
 max_log_file = 50
-max_log_file_action = ignore
+max_log_file_action = rotate
 
 # Name format for multi-host environments
 name_format = hostname

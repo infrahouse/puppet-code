@@ -95,12 +95,8 @@ class profile::auditd (
     require => Service['auditd'],
   }
 
-  # Log rotation for audit logs
+  # Remove logrotate config - auditd handles rotation natively
   file { '/etc/logrotate.d/audit':
-    ensure  => file,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0644',
-    content => template('profile/auditd/logrotate.erb'),
+    ensure => absent,
   }
 }
