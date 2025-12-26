@@ -25,6 +25,11 @@ class profile::openvpn_server::cloudwatch_agent {
       extra_procstat       => ['openvpn'],
     }
 
+    # ACL package needed for setfacl command
+    package { 'acl':
+      ensure => installed,
+    }
+
     # Scripts to manage ACLs on OpenVPN log files
     file { '/usr/local/bin/set-openvpn-acl':
       ensure  => file,
@@ -49,6 +54,7 @@ class profile::openvpn_server::cloudwatch_agent {
       command => '/usr/local/bin/set-openvpn-acl',
       unless  => '/usr/local/bin/check-openvpn-acl',
       require => [
+        Package['acl'],
         File['/usr/local/bin/set-openvpn-acl'],
         File['/usr/local/bin/check-openvpn-acl'],
       ],
