@@ -2,9 +2,7 @@
 #
 # Provides common resources and configuration for CloudWatch agent:
 # - CloudWatch agent package, user, and service
-# - ACL package for audit log access
-# - Scripts for setting and verifying ACLs
-# - Systemd drop-in for supplementary groups
+# - Systemd drop-in for supplementary groups (adm group for log access)
 # - Monitoring script
 # - Common logs and metrics configuration
 #
@@ -67,41 +65,6 @@ class profile::cloudwatch_agent (
     group   => 'root',
     mode    => '0755',
     require => Package['amazon-cloudwatch-agent'],
-  }
-
-  # Ensure acl package is installed for setting file ACLs
-  package { 'acl':
-    ensure => installed,
-  }
-
-  # Deploy ACL setup script
-  file { '/usr/local/bin/set-audit-acl':
-    ensure  => file,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('profile/cloudwatch_agent/set-audit-acl.sh.erb'),
-  }
-
-  # Deploy ACL verification script
-  file { '/usr/local/bin/check-audit-acl':
-    ensure  => file,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('profile/cloudwatch_agent/check-audit-acl.sh.erb'),
-  }
-
-  # Allow CloudWatch agent to read audit logs
-  exec { 'set-audit-log-acl':
-    command => '/usr/local/bin/set-audit-acl',
-    unless  => '/usr/local/bin/check-audit-acl',
-    require => [
-      Class['sudo'],
-      File['/usr/local/bin/set-audit-acl'],
-      File['/usr/local/bin/check-audit-acl'],
-      User['cwagent'],
-    ],
   }
 
   # Systemd drop-in to ensure CloudWatch agent gets supplementary groups
