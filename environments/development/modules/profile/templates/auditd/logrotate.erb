@@ -1,14 +1,17 @@
 # Managed by Puppet
 # Logrotate configuration for audit logs
+# Size-based rotation (auditd rotation is disabled to allow postrotate ACL restore)
 
 <%= File.dirname(@log_file) %>/*.log {
-    daily
-    rotate 365
+    size 50M
+    rotate 10
     compress
     delaycompress
     notifempty
+    missingok
     create <%= @log_file_mode %> <%= @log_file_owner %> <%= @log_file_group %>
     postrotate
+        # Tell auditd to reopen its log file
         /usr/sbin/service auditd rotate
         # Restore ACLs if CloudWatch agent is configured
         if [ -x /usr/local/bin/set-audit-acl ]; then
