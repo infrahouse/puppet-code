@@ -37,6 +37,7 @@ class profile::openvpn_server (
   }
 
   include 'profile::openvpn_server::nat'
+  include 'profile::openvpn_server::auditd'
   include 'profile::openvpn_server::cloudwatch_agent'
 
 }
