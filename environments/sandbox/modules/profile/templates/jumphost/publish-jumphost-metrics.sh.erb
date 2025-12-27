@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # CloudWatch Custom Metrics for Jumphost
-# Publishes: ServiceStatus, DiskSpaceUsed, AuditEventsLost, FailedLogins
+# Publishes: ServiceStatus, AuditEventsLost, FailedLogins
 #
 # This script is managed by Puppet - do not edit manually
 
@@ -28,7 +28,7 @@ publish_metric() {
         --metric-name "${metric_name}" \
         --value "${value}" \
         --unit "${unit}" \
-        --dimensions "Hostname=${HOSTNAME},Environment=${ENVIRONMENT}" \
+        --dimensions "host=${HOSTNAME},environment=${ENVIRONMENT}" \
         2>/dev/null || echo "Warning: Failed to publish ${metric_name}" >&2
 }
 
@@ -41,17 +41,7 @@ check_service_status() {
     fi
 }
 
-# Metric 2: DiskSpaceUsed - Root filesystem usage percentage
-check_disk_usage() {
-    local disk_used
-    disk_used=$(df -h / | awk 'NR==2 {print $5}' | sed 's/%//')
-
-    if [[ -n "${disk_used}" ]]; then
-        publish_metric "DiskSpaceUsed" "${disk_used}" "Percent"
-    fi
-}
-
-# Metric 3: AuditEventsLost - Delta of lost audit events
+# Metric 2: AuditEventsLost - Delta of lost audit events
 check_audit_events_lost() {
     local state_file="${STATE_DIR}/audit-lost-count.txt"
     local current_lost
@@ -81,7 +71,7 @@ check_audit_events_lost() {
     fi
 }
 
-# Metric 4: FailedLogins - Count of failed SSH login attempts
+# Metric 3: FailedLogins - Count of failed SSH login attempts
 check_failed_logins() {
     local state_file="${STATE_DIR}/failed-logins-timestamp.txt"
     local current_timestamp
@@ -118,7 +108,6 @@ check_failed_logins() {
 # Main execution
 main() {
     check_service_status
-    check_disk_usage
     check_audit_events_lost
     check_failed_logins
 }

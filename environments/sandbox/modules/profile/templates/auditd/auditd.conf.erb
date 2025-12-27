@@ -12,8 +12,8 @@ log_file = <%= @log_file %>
 # Log format (raw or enriched - enriched provides more detail for compliance)
 log_format = enriched
 
-# Log group (for permissions)
-log_group = root
+# Log group (for permissions - adm group allows CloudWatch agent to read)
+log_group = <%= @log_file_group %>
 
 # Priority boost for daemon
 priority_boost = 4
@@ -36,6 +36,7 @@ disk_full_action = suspend
 disk_error_action = suspend
 
 # Maximum log file size (in MB)
+# Auditd handles rotation natively, preserving log_group on new files
 max_log_file = 50
 max_log_file_action = rotate
 
