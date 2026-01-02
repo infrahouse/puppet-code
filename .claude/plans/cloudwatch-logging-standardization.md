@@ -14,11 +14,11 @@
 | 4 | Delete old jumphost ACL scripts (development) | ✅ Done |
 | 5 | Upgrade OpenVPN CloudWatch (development) | ✅ Done |
 | 5 | Add OpenVPN auditd profile (development) | ✅ Done |
-| 6 | Run puppet-lint validation | ⬜ Pending |
-| 6 | Create PR | ⬜ Pending |
-| 7 | Test in development (Jumphost + OpenVPN) | ⬜ Pending |
-| 8 | Promote to sandbox environment | ⬜ Pending |
-| 8 | Test in sandbox | ⬜ Pending |
+| 6 | Run puppet-lint validation | ✅ Done |
+| 6 | Create PR | ✅ Done |
+| 7 | Test in development (Jumphost + OpenVPN) | ✅ Done |
+| 8 | Promote to sandbox environment | ✅ Done |
+| 8 | Test in sandbox | ✅ Done |
 | 9 | Promote to global modules/profile | ⬜ Pending |
 
 ## Overview
