@@ -7,37 +7,42 @@
 #
 class profile::jumphost::custom_metrics {
 
-  # Variables for template
-  $ec2_hostname = $facts['networking']['hostname']
-  $region = $facts['ec2_metadata']['placement']['region']
-  $cloudwatch_namespace = $facts['jumphost']['cloudwatch_namespace']
-  # $environment is a built-in Puppet variable, available in template scope
+  # Only configure if CloudWatch namespace is provided via Terraform facts
+  if $facts['jumphost'] and $facts['jumphost']['cloudwatch_namespace'] {
 
-  # Deploy metrics collection script
-  file { '/usr/local/bin/publish-jumphost-metrics':
-    ensure  => file,
-    owner   => 'root',
-    group   => 'root',
-    mode    => '0755',
-    content => template('profile/jumphost/publish-jumphost-metrics.sh.erb'),
-  }
+    # Variables for template
+    $ec2_hostname = $facts['networking']['hostname']
+    $region = $facts['ec2_metadata']['placement']['region']
+    $cloudwatch_namespace = $facts['jumphost']['cloudwatch_namespace']
+    # $environment is a built-in Puppet variable, available in template scope
 
-  # Create state directory for tracking deltas
-  file { '/var/run/jumphost-metrics':
-    ensure => directory,
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-  }
+    # Deploy metrics collection script
+    file { '/usr/local/bin/publish-jumphost-metrics':
+      ensure  => file,
+      owner   => 'root',
+      group   => 'root',
+      mode    => '0755',
+      content => template('profile/jumphost/publish-jumphost-metrics.sh.erb'),
+    }
 
-  # Schedule metrics collection every minute
-  cron { 'publish-jumphost-metrics':
-    command => '/usr/local/bin/publish-jumphost-metrics',
-    user    => 'root',
-    minute  => '*',
-    require => [
-      File['/usr/local/bin/publish-jumphost-metrics'],
-      File['/var/run/jumphost-metrics'],
-    ],
+    # Create state directory for tracking deltas
+    file { '/var/run/jumphost-metrics':
+      ensure => directory,
+      owner  => 'root',
+      group  => 'root',
+      mode   => '0755',
+    }
+
+    # Schedule metrics collection every minute
+    cron { 'publish-jumphost-metrics':
+      command => '/usr/local/bin/publish-jumphost-metrics',
+      user    => 'root',
+      minute  => '*',
+      require => [
+        File['/usr/local/bin/publish-jumphost-metrics'],
+        File['/var/run/jumphost-metrics'],
+      ],
+    }
+
   }
 }
