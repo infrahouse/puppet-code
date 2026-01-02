@@ -19,7 +19,7 @@
 | 7 | Test in development (Jumphost + OpenVPN) | ✅ Done |
 | 8 | Promote to sandbox environment | ✅ Done |
 | 8 | Test in sandbox | ✅ Done |
-| 9 | Promote to global modules/profile | ⬜ Pending |
+| 9 | Promote to global modules/profile | ✅ Done |
 
 ## Overview
 
