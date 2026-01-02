@@ -1,0 +1,27 @@
+#!/bin/bash
+# Check if ACLs are set on OpenVPN log files for cwagent user
+# Managed by Puppet - profile::openvpn_server::cloudwatch_agent
+# Exit 0 if ACLs are correctly set, exit 1 if they need to be applied
+
+OPENVPN_LOG_DIR="/var/log/openvpn"
+
+# Check directory ACL
+if ! getfacl -p "${OPENVPN_LOG_DIR}" 2>/dev/null | grep -q "user:cwagent:r-x"; then
+    exit 1
+fi
+
+# Check default ACL on directory
+if ! getfacl -p "${OPENVPN_LOG_DIR}" 2>/dev/null | grep -q "default:user:cwagent:r--"; then
+    exit 1
+fi
+
+# Check ACL on existing log files
+for log_file in "${OPENVPN_LOG_DIR}"/*.log; do
+    if [ -f "${log_file}" ]; then
+        if ! getfacl -p "${log_file}" 2>/dev/null | grep -q "user:cwagent:r--"; then
+            exit 1
+        fi
+    fi
+done
+
+exit 0
