@@ -1,0 +1,112 @@
+# Managed by Puppet
+# Terraformer-specific audit rules
+# Tracks all Terraform operations for compliance and audit trail
+#
+# ============================================================
+# USAGE: How to Query Terraform Command History
+# ============================================================
+#
+# View all terraform commands:
+#   sudo ausearch -k terraform_command -i
+#
+# View terraform commands from today:
+#   sudo ausearch -k terraform_command -ts today -i
+#
+# View terraform commands by specific user:
+#   sudo ausearch -k terraform_command -ua <username> -i
+#
+# View terraform commands in last hour:
+#   sudo ausearch -k terraform_command -ts recent -i
+#
+# Generate terraform activity report:
+#   sudo aureport -x -i | grep terraform
+#
+# View full event details (all records for one event):
+#   sudo ausearch -a <event_id> -i
+#
+# Example output:
+#   type=PROCTITLE ... proctitle=terraform apply -auto-approve
+#   type=EXECVE ... argc=3 a0=terraform a1=apply a2=-auto-approve
+#   type=CWD ... cwd=/home/ubuntu/code/terraform-project
+#   type=SYSCALL ... auid=ubuntu uid=ubuntu ... key=terraform_command
+#
+# Key fields:
+#   - proctitle: full command line
+#   - argc/a0/a1/a2: argument count and values
+#   - auid: original user (even through sudo)
+#   - cwd: directory where command was run
+#
+# View all audit keys available:
+#   sudo auditctl -l | grep -o 'key=[^ ]*' | sort -u
+#
+# Real-time monitoring:
+#   sudo ausearch -k terraform_command -ts recent -i | tail -f
+#
+# CloudWatch Logs query (after logs are shipped):
+#   Log group: /aws/ec2/terraformer
+#   Stream: audit/security
+#   Filter: terraform_command
+#
+# ============================================================
+
+# ============================================================
+# TERRAFORM COMMAND EXECUTION - CRITICAL
+# ============================================================
+
+# Track all terraform command execution with full arguments
+# This captures: who (auid), when (timestamp), what (command + args)
+-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/terraform -k terraform_command
+-a always,exit -F arch=b32 -S execve -F exe=/usr/bin/terraform -k terraform_command
+
+# Track terraform binary execution (simpler rule, backup)
+-w /usr/bin/terraform -p x -k terraform_execution
+
+# Track OpenTofu if installed (open source fork)
+-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/tofu -k tofu_command
+-w /usr/bin/tofu -p x -k tofu_execution
+
+# ============================================================
+# TERRAFORM STATE FILES
+# ============================================================
+# State is stored in S3 (terraform.tfstate) - audited by AWS CloudTrail, not here.
+# CloudTrail logs: s3:GetObject, s3:PutObject on the state bucket.
+#
+# If you ever use local state files, uncomment:
+# -w /var/lib/terraform/ -p rwa -k terraform_state
+# -w /opt/terraform/ -p rwa -k terraform_state
+
+# ============================================================
+# AWS CREDENTIALS ACCESS
+# ============================================================
+
+# Track AWS credentials access (terraform typically uses AWS)
+-w /root/.aws/ -p r -k aws_credentials_access
+# Note: Cannot watch /home/*/.aws/ with -w rules (no wildcard support)
+
+# Track AWS environment variables file if used
+-w /etc/environment -p r -k environment_access
+
+# ============================================================
+# TERRAFORM CONFIGURATION CHANGES
+# ============================================================
+
+# Track changes to terraform configurations in common locations
+# Add project-specific paths as needed
+-w /etc/terraform/ -p wa -k terraform_config
+
+# ============================================================
+# PRIVILEGED COMMAND EXECUTION
+# ============================================================
+
+# Track sudo usage (terraform often runs via sudo)
+-a always,exit -F arch=b64 -S execve -F exe=/usr/bin/sudo -k sudo_usage
+
+# Track all commands run by non-system users
+-a always,exit -F arch=b64 -S execve -F auid>=1000 -F auid!=4294967295 -k user_commands
+
+# ============================================================
+# GIT OPERATIONS (infrastructure as code)
+# ============================================================
+
+# Track git operations (terraform code changes)
+-w /usr/bin/git -p x -k git_execution
