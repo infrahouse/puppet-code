@@ -7,4 +7,10 @@ class profile::terraformer (
   package { 'terraform':
     ensure => $terraform_version
   }
+
+  # Audit logging for terraform command tracking
+  include profile::terraformer::auditd
+
+  # CloudWatch agent for logging and metrics
+  include profile::terraformer::cloudwatch_agent
 }

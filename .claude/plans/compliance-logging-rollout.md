@@ -39,19 +39,19 @@
 
 ### Phase 2: Terraformer
 #### 2.1 Development Environment
-- [ ] Create `terraformer/auditd.pp`
-- [ ] Create `terraformer.rules.erb`
-- [ ] Testing and validation
-- [ ] **Release**: `puppet-terraformer-auditd-dev-v1.0.0`
+- [x] Create `terraformer/auditd.pp`
+- [x] Create `terraformer.rules.erb`
+- [x] Testing and validation
+- [x] **Release**: `puppet-terraformer-auditd-dev-v1.0.0`
 
 #### 2.2 Sandbox Environment
-- [ ] Deploy to sandbox
-- [ ] Infrastructure change simulations
-- [ ] **Release**: `puppet-terraformer-auditd-sandbox-v1.0.0`
+- [x] Deploy to sandbox
+- [x] Infrastructure change simulations
+- [x] **Release**: `puppet-terraformer-auditd-sandbox-v1.0.0`
 
 #### 2.3 Global Modules (Production)
-- [ ] Deploy to production
-- [ ] **Release**: `puppet-terraformer-auditd-prod-v1.0.0`
+- [x] Deploy to production
+- [x] **Release**: `puppet-terraformer-auditd-prod-v1.0.0`
 
 ### Phase 3: Elasticsearch
 #### 3.1 Development Environment
