@@ -1,0 +1,3 @@
+---
+classes:
+  - role::percona_server
