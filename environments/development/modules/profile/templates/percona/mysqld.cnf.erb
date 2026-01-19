@@ -1,0 +1,24 @@
+# Percona Server 8.0 configuration
+# Managed by Puppet - DO NOT EDIT
+
+[mysqld]
+# Unique server identifier
+server-id = <%= @server_id %>
+
+# GTID configuration (required for replication)
+gtid_mode = ON
+enforce_gtid_consistency = ON
+
+# Binary logging (required for replication)
+log_bin = mysql-bin
+binlog_format = ROW
+log_slave_updates = ON
+
+# Replication settings
+relay_log = relay-bin
+relay_log_recovery = ON
+
+# Configurable settings (from facts/hiera/defaults)
+<% @mysql_config.sort.each do |key, value| -%>
+<%= key %> = <%= value %>
+<% end -%>
