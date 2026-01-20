@@ -1,0 +1,22 @@
+#!/usr/bin/env bash
+# Regenerate OpenVPN CRL (Certificate Revocation List)
+# Managed by Puppet - do not edit manually
+#
+# Silent on success, outputs errors only (suitable for cron)
+
+set -e
+
+cd <%= @openvp_config_directory %>
+
+# Read passphrase from file and use pass: prefix (file: prefix has issues with OpenSSL 3.x)
+CA_PASSPHRASE=$(cat <%= @openvpn_easyrsa_passin_file %>)
+export EASYRSA_PASSIN="pass:${CA_PASSPHRASE}"
+
+OUTPUT=$(/usr/share/easy-rsa/easyrsa --vars=<%= @openvp_config_directory %>/vars gen-crl 2>&1) || {
+    echo "ERROR: Failed to regenerate CRL" >&2
+    echo "$OUTPUT" >&2
+    exit 1
+}
+
+# OpenVPN re-reads the CRL file on each new connection attempt,
+# so no service restart is needed.

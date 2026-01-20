@@ -29,15 +29,17 @@ class profile::openvpn_server::config (
     mount_target => $openvp_config_directory,
   }
 
+  $ca_passphrase = aws_get_secret(
+    $facts['openvpn']['ca_key_passphrase_secret'],
+    $facts['ec2_metadata']['placement']['region']
+  )
+
   file { $openvpn_easyrsa_passin_file:
     ensure  => file,
     owner   => 'root',
     group   => 'root',
     mode    => '0400',
-    content => aws_get_secret(
-      $facts['openvpn']['ca_key_passphrase_secret'],
-      $facts['ec2_metadata']['placement']['region']
-    ),
+    content => $ca_passphrase,
     require => [
       Mount[$openvp_config_directory],
     ]
@@ -116,24 +118,34 @@ class profile::openvpn_server::config (
   }
 
   exec { 'generate_ca':
-    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-ca",
-    cwd     => $openvp_config_directory,
-    creates => "${openvp_config_directory}/pki/private/ca.key",
-    require => [
+    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-ca",
+    cwd         => $openvp_config_directory,
+    environment => [
+      "EASYRSA_PASSIN=pass:${ca_passphrase}",
+      "EASYRSA_PASSOUT=pass:${ca_passphrase}",
+      "EASYRSA_REQ_CN=${openvpn_easyrsa_req_org} CA",
+    ],
+    creates     => "${openvp_config_directory}/pki/private/ca.key",
+    require     => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
+      File[$openvpn_easyrsa_passin_file],
     ]
   }
 
   exec { 'generate_server_key':
-    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-server-full server nopass inline",
-    cwd     => $openvp_config_directory,
-    creates => "${openvp_config_directory}/pki/private/server.key",
-    require => [
+    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-server-full server nopass",
+    cwd         => $openvp_config_directory,
+    environment => [
+      "EASYRSA_PASSIN=pass:${ca_passphrase}",
+    ],
+    creates     => "${openvp_config_directory}/pki/private/server.key",
+    require     => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
+      Exec[generate_ca],
     ]
   }
 
@@ -145,16 +157,40 @@ class profile::openvpn_server::config (
   }
 
   exec { 'generate_gen_crl':
-    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars gen-crl",
-    cwd     => $openvp_config_directory,
-    creates => $openvpn_crl_path,
-    require => [
+    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars gen-crl",
+    cwd         => $openvp_config_directory,
+    environment => [
+      "EASYRSA_PASSIN=pass:${ca_passphrase}",
+    ],
+    creates     => $openvpn_crl_path,
+    require     => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
-      File[$openvpn_easyrsa_passin_file],
-      Exec[generate_pki],
+      Exec[generate_ca],
     ]
+  }
+
+  # Script to regenerate CRL
+  $crl_regen_script = "${openvp_config_directory}/regenerate-crl.sh"
+
+  file { $crl_regen_script:
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0700',
+    content => template('profile/openvpn_server/regenerate-crl.sh.erb'),
+    require => Exec['generate_gen_crl'],
+  }
+
+  # Regenerate CRL monthly (expires every 180 days per EASYRSA_CRL_DAYS in vars)
+  cron { 'regenerate_openvpn_crl':
+    command  => $crl_regen_script,
+    user     => 'root',
+    hour     => 3,
+    minute   => 0,
+    monthday => 1,
+    require  => File[$crl_regen_script],
   }
 
 }
