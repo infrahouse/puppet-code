@@ -11,6 +11,9 @@ class profile::openvpn_server::config (
   String $openvpn_topology,
   String $openvpn_network,
   String $openvpn_netmask,
+  $mailto = lookup(
+    'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
+  ),
 ) {
 
   $dns_name = $facts['efs']['dns_name']
@@ -49,6 +52,17 @@ class profile::openvpn_server::config (
     ensure  => file,
     content => template('profile/openvpn_server/server.conf.erb'),
     notify  => Service['openvpn@server'],
+    require => [
+      Mount[$openvp_config_directory],
+    ],
+  }
+
+  file { "${openvp_config_directory}/README":
+    ensure  => file,
+    content => template('profile/openvpn_server/README.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
     require => [
       Mount[$openvp_config_directory],
     ],
@@ -117,6 +131,10 @@ class profile::openvpn_server::config (
     ]
   }
 
+  # Note: Passphrase is briefly visible in process environment during execution.
+  # This is required because Easy-RSA with OpenSSL 3.x doesn't support file: prefix.
+  # The passphrase file itself is secured at mode 0400 (root read-only).
+  # Alternative approaches (stdin redirection) are not supported by Easy-RSA batch mode.
   exec { 'generate_ca':
     command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-ca",
     cwd         => $openvp_config_directory,
@@ -171,7 +189,13 @@ class profile::openvpn_server::config (
     ]
   }
 
-  # Script to regenerate CRL
+  # Certificate Revocation List (CRL) Management:
+  # - CRL expires every 180 days (EASYRSA_CRL_DAYS in vars.erb)
+  # - Automated regeneration: Monthly on the 1st at 3 AM
+  # - Manual regeneration: Run /etc/openvpn/regenerate-crl.sh as root
+  # - OpenVPN automatically re-reads CRL on each connection (no restart needed)
+  # - Monitor CRL age: Check /etc/openvpn/pki/crl.pem modification time
+  # - Logs to syslog with tag 'openvpn-crl' (auth facility)
   $crl_regen_script = "${openvp_config_directory}/regenerate-crl.sh"
 
   file { $crl_regen_script:
@@ -182,15 +206,14 @@ class profile::openvpn_server::config (
     content => template('profile/openvpn_server/regenerate-crl.sh.erb'),
     require => Exec['generate_gen_crl'],
   }
-
-  # Regenerate CRL monthly (expires every 180 days per EASYRSA_CRL_DAYS in vars)
   cron { 'regenerate_openvpn_crl':
-    command  => $crl_regen_script,
-    user     => 'root',
-    hour     => 3,
-    minute   => 0,
-    monthday => 1,
-    require  => File[$crl_regen_script],
+    command     => $crl_regen_script,
+    user        => 'root',
+    hour        => 3,
+    minute      => 0,
+    monthday    => 1,
+    environment => ["MAILTO=${mailto}"],
+    require     => File[$crl_regen_script],
   }
 
 }
