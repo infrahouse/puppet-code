@@ -1,0 +1,77 @@
+OpenVPN Server - Operational Guide
+===================================
+Managed by Puppet - do not edit manually
+
+This file is deployed by profile::openvpn_server::config
+
+
+Certificate Revocation List (CRL) Management
+---------------------------------------------
+
+CRL Configuration:
+  - Expiration: 180 days (EASYRSA_CRL_DAYS in vars)
+  - Auto-regeneration: Monthly on the 1st at 3 AM
+  - Location: <%= @openvp_config_directory %>/pki/crl.pem
+
+Logging:
+  - Syslog tag: openvpn-crl
+  - Facility: auth
+  - View logs: journalctl -t openvpn-crl
+
+Manual CRL Regeneration:
+  sudo <%= @openvp_config_directory %>/regenerate-crl.sh
+
+Check CRL Age:
+  stat <%= @openvp_config_directory %>/pki/crl.pem | grep Modify
+
+Check CRL Expiration:
+  openssl crl -in <%= @openvp_config_directory %>/pki/crl.pem -noout -nextupdate
+
+
+Troubleshooting
+---------------
+
+CRL regeneration failed:
+  1. Check logs: journalctl -t openvpn-crl -n 50
+  2. Verify CA passphrase file exists: ls -la <%= @openvpn_easyrsa_passin_file %>
+  3. Test passphrase manually:
+     cd <%= @openvp_config_directory %>
+     EASYRSA_PASSIN="pass:$(cat <%= @openvpn_easyrsa_passin_file %>)" \
+       /usr/share/easy-rsa/easyrsa --vars=<%= @openvp_config_directory %>/vars gen-crl
+  4. Check AWS Secrets Manager access if passphrase file is empty/missing
+
+OpenVPN not accepting connections:
+  1. Check service: systemctl status openvpn@server
+  2. Check CRL validity: openssl crl -in <%= @openvp_config_directory %>/pki/crl.pem -noout -nextupdate
+  3. Check logs: journalctl -u openvpn@server -n 100
+
+Client certificate revoked unexpectedly:
+  - CRL is re-read on each connection, no restart needed after regeneration
+  - Check index.txt for certificate status:
+    cat <%= @openvp_config_directory %>/pki/index.txt
+
+
+Key Files
+---------
+
+<%= @openvp_config_directory %>/
+  pki/
+    ca.crt              - CA certificate (public)
+    crl.pem             - Certificate Revocation List
+    private/
+      ca.key            - CA private key (encrypted)
+      server.key        - Server private key
+    issued/
+      server.crt        - Server certificate
+    index.txt           - Certificate database
+  vars                  - Easy-RSA configuration
+  server.conf           - OpenVPN server configuration
+  regenerate-crl.sh     - CRL regeneration script
+  ca_passphrase         - CA key passphrase (mode 0400)
+
+
+Related Documentation
+---------------------
+
+Easy-RSA: https://github.com/OpenVPN/easy-rsa
+OpenSSL 3.x issues: https://github.com/OpenVPN/easy-rsa/issues/692

@@ -11,6 +11,9 @@ class profile::openvpn_server::config (
   String $openvpn_topology,
   String $openvpn_network,
   String $openvpn_netmask,
+  $mailto = lookup(
+    'profile::cron::mailto', undef, undef, "root@${facts['networking']['hostname']}.${facts['networking']['domain']}"
+  ),
 ) {
 
   $dns_name = $facts['efs']['dns_name']
@@ -29,15 +32,17 @@ class profile::openvpn_server::config (
     mount_target => $openvp_config_directory,
   }
 
+  $ca_passphrase = aws_get_secret(
+    $facts['openvpn']['ca_key_passphrase_secret'],
+    $facts['ec2_metadata']['placement']['region']
+  )
+
   file { $openvpn_easyrsa_passin_file:
     ensure  => file,
     owner   => 'root',
     group   => 'root',
     mode    => '0400',
-    content => aws_get_secret(
-      $facts['openvpn']['ca_key_passphrase_secret'],
-      $facts['ec2_metadata']['placement']['region']
-    ),
+    content => $ca_passphrase,
     require => [
       Mount[$openvp_config_directory],
     ]
@@ -47,6 +52,17 @@ class profile::openvpn_server::config (
     ensure  => file,
     content => template('profile/openvpn_server/server.conf.erb'),
     notify  => Service['openvpn@server'],
+    require => [
+      Mount[$openvp_config_directory],
+    ],
+  }
+
+  file { "${openvp_config_directory}/README":
+    ensure  => file,
+    content => template('profile/openvpn_server/README.erb'),
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
     require => [
       Mount[$openvp_config_directory],
     ],
@@ -115,25 +131,39 @@ class profile::openvpn_server::config (
     ]
   }
 
+  # Note: Passphrase is briefly visible in process environment during execution.
+  # This is required because Easy-RSA with OpenSSL 3.x doesn't support file: prefix.
+  # The passphrase file itself is secured at mode 0400 (root read-only).
+  # Alternative approaches (stdin redirection) are not supported by Easy-RSA batch mode.
   exec { 'generate_ca':
-    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-ca",
-    cwd     => $openvp_config_directory,
-    creates => "${openvp_config_directory}/pki/private/ca.key",
-    require => [
+    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-ca",
+    cwd         => $openvp_config_directory,
+    environment => [
+      "EASYRSA_PASSIN=pass:${ca_passphrase}",
+      "EASYRSA_PASSOUT=pass:${ca_passphrase}",
+      "EASYRSA_REQ_CN=${openvpn_easyrsa_req_org} CA",
+    ],
+    creates     => "${openvp_config_directory}/pki/private/ca.key",
+    require     => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
+      File[$openvpn_easyrsa_passin_file],
     ]
   }
 
   exec { 'generate_server_key':
-    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-server-full server nopass inline",
-    cwd     => $openvp_config_directory,
-    creates => "${openvp_config_directory}/pki/private/server.key",
-    require => [
+    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars build-server-full server nopass",
+    cwd         => $openvp_config_directory,
+    environment => [
+      "EASYRSA_PASSIN=pass:${ca_passphrase}",
+    ],
+    creates     => "${openvp_config_directory}/pki/private/server.key",
+    require     => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
+      Exec[generate_ca],
     ]
   }
 
@@ -145,16 +175,45 @@ class profile::openvpn_server::config (
   }
 
   exec { 'generate_gen_crl':
-    command => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars gen-crl",
-    cwd     => $openvp_config_directory,
-    creates => $openvpn_crl_path,
-    require => [
+    command     => "/usr/share/easy-rsa/easyrsa --vars=${openvp_config_directory}/vars gen-crl",
+    cwd         => $openvp_config_directory,
+    environment => [
+      "EASYRSA_PASSIN=pass:${ca_passphrase}",
+    ],
+    creates     => $openvpn_crl_path,
+    require     => [
       Mount[$openvp_config_directory],
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
-      File[$openvpn_easyrsa_passin_file],
-      Exec[generate_pki],
+      Exec[generate_ca],
     ]
+  }
+
+  # Certificate Revocation List (CRL) Management:
+  # - CRL expires every 180 days (EASYRSA_CRL_DAYS in vars.erb)
+  # - Automated regeneration: Monthly on the 1st at 3 AM
+  # - Manual regeneration: Run /etc/openvpn/regenerate-crl.sh as root
+  # - OpenVPN automatically re-reads CRL on each connection (no restart needed)
+  # - Monitor CRL age: Check /etc/openvpn/pki/crl.pem modification time
+  # - Logs to syslog with tag 'openvpn-crl' (auth facility)
+  $crl_regen_script = "${openvp_config_directory}/regenerate-crl.sh"
+
+  file { $crl_regen_script:
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0700',
+    content => template('profile/openvpn_server/regenerate-crl.sh.erb'),
+    require => Exec['generate_gen_crl'],
+  }
+  cron { 'regenerate_openvpn_crl':
+    command     => $crl_regen_script,
+    user        => 'root',
+    hour        => 3,
+    minute      => 0,
+    monthday    => 1,
+    environment => ["MAILTO=${mailto}"],
+    require     => File[$crl_regen_script],
   }
 
 }
