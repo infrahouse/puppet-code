@@ -15,4 +15,9 @@ class profile::percona::packages () {
     require => Class['profile::percona::repo'],
   }
 
+  package { 'percona-xtrabackup-80':
+    ensure  => 'installed',
+    require => Class['profile::percona::repo'],
+  }
+
 }
