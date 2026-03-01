@@ -1,6 +1,8 @@
 # @summary: Configures Percona Server my.cnf with GTID replication settings.
 class profile::percona::config () {
 
+  $percona_series = $profile::percona::percona_series
+
   # Generate unique server-id from IP address last two octets
   $ip_parts = split($facts['networking']['ip'], '[.]')
   $server_id = Integer($ip_parts[2]) * 256 + Integer($ip_parts[3])

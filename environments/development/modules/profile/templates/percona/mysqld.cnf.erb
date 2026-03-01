@@ -1,4 +1,4 @@
-# Percona Server 8.0 configuration
+# Percona Server <%= @percona_series %> configuration
 # Managed by Puppet - DO NOT EDIT
 
 [mysqld]
@@ -11,8 +11,10 @@ enforce_gtid_consistency = ON
 
 # Binary logging (required for replication)
 log_bin = mysql-bin
+<% if @percona_series == '8.0' -%>
 binlog_format = ROW
 log_slave_updates = ON
+<% end -%>
 
 # Replication settings
 relay_log = relay-bin
