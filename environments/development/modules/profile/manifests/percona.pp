@@ -40,4 +40,9 @@ class profile::percona () {
   include 'profile::percona::service'
   include 'profile::percona::bootstrap'
 
+  # Orchestrator doesn't support MySQL 8.4 (SHOW MASTER/SLAVE STATUS removed)
+  if $percona_series == '8.0' {
+    include 'profile::percona::orchestrator'
+  }
+
 }

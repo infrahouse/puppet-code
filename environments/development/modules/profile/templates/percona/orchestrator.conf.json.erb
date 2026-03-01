@@ -1,0 +1,24 @@
+{
+  "Debug": false,
+  "ListenAddress": ":3000",
+  "BackendDB": "sqlite",
+  "MySQLTopologyUser": "orchestrator",
+  "MySQLTopologyPassword": "<%= @orchestrator_password %>",
+  "MySQLTopologySSLSkipVerify": true,
+  "RaftEnabled": true,
+  "RaftDataDir": "/var/lib/orchestrator/raft",
+  "RaftBind": "<%= @private_ip %>:10008",
+  "RaftNodes": [
+<% @raft_nodes.each_with_index do |node, i| -%>
+    "<%= node %>:10008"<%= i < @raft_nodes.length - 1 ? ',' : '' %>
+<% end -%>
+  ],
+  "SQLite3DataFile": "/var/lib/orchestrator/orchestrator.sqlite3",
+  "DetectClusterAliasQuery": "SELECT '<%= @cluster_id %>'",
+  "DiscoverySeeds": [
+    "<%= @private_ip %>:3306"
+  ],
+  "PostFailoverProcesses": [
+    "/usr/local/bin/ih-mysql failover-hook"
+  ]
+}
