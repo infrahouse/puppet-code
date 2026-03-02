@@ -7,6 +7,9 @@ sudo::configs:
   'admin':
     'content'   : '%admin ALL=(ALL) NOPASSWD: ALL'
     'priority'  : 10
+  'ssm-user':
+    'content'   : 'ssm-user ALL=(ALL) NOPASSWD: ALL'
+    'priority'  : 10
 
 accounts::user_list:
   ubuntu:
