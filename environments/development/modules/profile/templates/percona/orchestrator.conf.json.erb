@@ -19,6 +19,7 @@
     "<%= @private_ip %>:3306"
   ],
   "UseSuperReadOnly": true,
+  "RecoverMasterClusterFilters": ["*"],
   "PostFailoverProcesses": [
     "ih-mysql failover --cluster-id <%= @cluster_id %> --dynamodb-table <%= @dynamodb_table %> --credentials-secret <%= @credentials_secret %> --vpc-cidr <%= @vpc_cidr %> --read-tg-arn <%= @read_tg_arn %> --write-tg-arn <%= @write_tg_arn %> {failureType} {failedHost}:{failedPort} {successorHost}:{successorPort}"
   ]
