@@ -37,4 +37,28 @@ class profile::elastic::config (
     ],
   }
 
+  if $facts.dig('elasticsearch', 'memory_lock') {
+    file { '/etc/systemd/system/elasticsearch.service.d':
+      ensure => directory,
+    }
+
+    file { '/etc/systemd/system/elasticsearch.service.d/override.conf':
+      ensure  => file,
+      content => "[Service]\nLimitMEMLOCK=infinity\n",
+      notify  => Exec['reload-systemd-for-elastic'],
+      require => File['/etc/systemd/system/elasticsearch.service.d'],
+    }
+
+    file { '/etc/sysctl.d/99-elasticsearch.conf':
+      ensure  => file,
+      content => "vm.swappiness = 1\n",
+      notify  => Exec['apply-elasticsearch-sysctl'],
+    }
+
+    exec { 'apply-elasticsearch-sysctl':
+      command     => '/sbin/sysctl -p /etc/sysctl.d/99-elasticsearch.conf',
+      refreshonly => true,
+    }
+  }
+
 }
