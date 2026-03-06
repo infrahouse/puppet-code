@@ -37,4 +37,8 @@ xpack.security.authc:
     roles: <%= @elastic_monitoring_role_name %>
     authz_exception: true
 
+<% if @facts.dig('elasticsearch', 'memory_lock') -%>
+bootstrap.memory_lock: true
+
+<% end -%>
 logger.org.elasticsearch.discovery.ec2: "INFO"
