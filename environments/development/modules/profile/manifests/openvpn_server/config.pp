@@ -149,6 +149,7 @@ class profile::openvpn_server::config (
       Package[easy-rsa],
       File["${openvp_config_directory}/vars"],
       File[$openvpn_easyrsa_passin_file],
+      Exec[generate_pki],
     ]
   }
 
