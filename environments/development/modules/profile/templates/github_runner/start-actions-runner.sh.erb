@@ -2,9 +2,13 @@
 
 set -eu
 
+instance_id=$(ec2metadata --instance-id)
+
 while true
 do
-  state="$(aws autoscaling describe-auto-scaling-instances --instance-ids "$(ec2metadata --instance-id)" | jq -r .AutoScalingInstances[0].LifecycleState)"
+  state=$(aws autoscaling describe-auto-scaling-instances \
+          --instance-ids "$instance_id" \
+          --query 'AutoScalingInstances[0].LifecycleState' --output text)
   if [[ "$state" == "InService" ]]; then
     break
   else
@@ -13,5 +17,4 @@ do
   fi
 done
 
-# Start actions-runner
-<%= @runner_package_directory %>/run.sh
+exec <%= @runner_package_directory %>/bin/runsvc.sh

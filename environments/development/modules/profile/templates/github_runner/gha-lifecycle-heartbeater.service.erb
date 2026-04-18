@@ -1,0 +1,8 @@
+[Unit]
+Description=Extend deregistration lifecycle hook while this instance is terminating
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/gha-lifecycle-heartbeater.sh
+Environment=DEREGISTRATION_HOOK_NAME=<%= @deregistration_hookname %>
+Restart=on-failure
