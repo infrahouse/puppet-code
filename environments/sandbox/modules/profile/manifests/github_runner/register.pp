@@ -25,6 +25,14 @@ class profile::github_runner::register (
     creates => "${runner_package_directory}/.credentials",
     require => [
       Exec[extract_runner_package]
-    ]
+    ],
+    notify  => Exec['delete_registration_token'],
+  }
+
+  exec { 'delete_registration_token':
+    user        => $user,
+    path        => '/usr/bin:/usr/local/bin',
+    command     => "aws secretsmanager delete-secret --secret-id ${token_secret} --force-delete-without-recovery",
+    refreshonly => true,
   }
 }

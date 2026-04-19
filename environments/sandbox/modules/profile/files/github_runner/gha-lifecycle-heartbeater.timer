@@ -1,0 +1,10 @@
+[Unit]
+Description=Every 10 minutes, heartbeat the deregistration lifecycle hook if needed
+
+[Timer]
+OnBootSec=2min
+OnUnitActiveSec=10min
+Unit=gha-lifecycle-heartbeater.service
+
+[Install]
+WantedBy=timers.target
