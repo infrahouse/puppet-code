@@ -65,6 +65,7 @@ class profile::bookstack::packages (
     user        => $www_user,
     environment => ["HOME=${bookstack_root}"],
     command     => 'composer install --no-dev',
+    timeout     => 600,
     creates     => "${bookstack_root}/vendor/autoload.php",
     require     => [
       Exec['extract_package'],
