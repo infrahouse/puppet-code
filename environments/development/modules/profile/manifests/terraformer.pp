@@ -13,4 +13,7 @@ class profile::terraformer (
 
   # CloudWatch agent for logging and metrics
   include profile::terraformer::cloudwatch_agent
+
+  # Shared Terraform provider plugin cache at a predictable path
+  include profile::terraformer::plugin_cache
 }
