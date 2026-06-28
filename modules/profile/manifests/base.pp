@@ -9,6 +9,7 @@ class profile::base () {
   include 'profile::infrahouse_toolkit'
   include 'profile::puppet_apply'
   include 'profile::swap'
+  include 'profile::unattended_upgrades'
   include '::accounts'
   include '::sudo'
 

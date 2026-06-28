@@ -1,0 +1,6 @@
+// Managed by Puppet (profile::elastic::service). Do not edit.
+// Never auto-upgrade Elasticsearch; version changes go via instance refresh.
+// Appends to Unattended-Upgrade::Package-Blacklist (see 52unattended-upgrades).
+Unattended-Upgrade::Package-Blacklist {
+    "elasticsearch";
+};
