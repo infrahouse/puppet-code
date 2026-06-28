@@ -8,3 +8,6 @@ accounts::user_list:
 
 profile::elastic::backups::hour: '*/2'
 profile::elastic::backups::minute: '0'
+
+profile::unattended_upgrades::package_blacklist:
+  - elasticsearch

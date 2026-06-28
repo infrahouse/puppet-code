@@ -1,0 +1,12 @@
+// Managed by Puppet (profile::unattended_upgrades). Do not edit.
+// Augments the distro default /etc/apt/apt.conf.d/50unattended-upgrades: the
+// -security origin stays enabled there; here we only add the package blacklist
+// and pin reboot behaviour.
+
+Unattended-Upgrade::Package-Blacklist {
+<% @package_blacklist.sort.each do |pkg| -%>
+    "<%= pkg %>";
+<% end -%>
+};
+
+Unattended-Upgrade::Automatic-Reboot "<%= @automatic_reboot %>";

@@ -1,0 +1,5 @@
+# Managed by Puppet (profile::elastic::service). Do not edit.
+# Do not auto-restart services after package/library upgrades. Elasticsearch is
+# restarted only via controlled instance refresh, so unattended-upgrades must
+# never bounce it. 'l' = list pending restarts only, never act.
+$nrconf{restart} = 'l';

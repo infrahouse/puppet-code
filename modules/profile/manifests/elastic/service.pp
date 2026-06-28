@@ -50,8 +50,24 @@ class profile::elastic::service (
     ]
   }
 
-  service { 'unattended-upgrades.service':
-    ensure => stopped,
+  # Security updates are applied fleet-wide by profile::unattended_upgrades.
+  # On Elasticsearch nodes we keep that running but must never let it bounce
+  # the ES process: the elasticsearch package is blacklisted from automatic
+  # upgrades (Hiera profile::unattended_upgrades::package_blacklist) and
+  # needrestart is set to list-only, so library security fixes land on disk
+  # without an automatic restart. Elasticsearch is restarted only via instance
+  # refresh, guarded by the decommission-node cron below.
+  package { 'needrestart':
+    ensure => present,
+  }
+
+  file { '/etc/needrestart/conf.d/90-elastic-no-auto-restart.conf':
+    ensure  => file,
+    owner   => 'root',
+    group   => 'root',
+    mode    => '0644',
+    content => template('profile/elasticsearch/needrestart-no-auto-restart.conf.erb'),
+    require => Package['needrestart'],
   }
 
   # If node is about to be replaced by instance refresh

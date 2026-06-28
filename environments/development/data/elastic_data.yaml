@@ -7,3 +7,6 @@ accounts::user_list:
     group: 'admin'
 
 profile::elastic::config::role: 'data, transform'
+
+profile::unattended_upgrades::package_blacklist:
+  - elasticsearch
