@@ -1,6 +1,3 @@
 ---
 classes:
   - role::elastic_master
-
-profile::unattended_upgrades::package_blacklist:
-  - elasticsearch

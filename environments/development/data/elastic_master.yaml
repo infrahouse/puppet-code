@@ -5,6 +5,3 @@ classes:
 accounts::user_list:
   ubuntu:
     group: 'admin'
-
-profile::unattended_upgrades::package_blacklist:
-  - elasticsearch

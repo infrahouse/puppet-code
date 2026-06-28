@@ -5,12 +5,11 @@
 # them and owns their configuration via Puppet.
 #
 # Hosts that must not be disrupted by an automatic service restart (e.g.
-# Elasticsearch nodes) keep unattended-upgrades running but blacklist the
-# sensitive package(s) through $package_blacklist (set per-role in Hiera) and
-# suppress automatic restarts separately (see profile::elastic::service).
+# Elasticsearch nodes) keep unattended-upgrades running but drop their own
+# apt.conf.d blacklist entry (which appends to the list) and suppress automatic
+# restarts separately (see profile::elastic::service).
 class profile::unattended_upgrades (
-  Boolean       $automatic_reboot  = lookup('profile::unattended_upgrades::automatic_reboot', undef, undef, false),
-  Array[String] $package_blacklist = lookup('profile::unattended_upgrades::package_blacklist', undef, undef, []),
+  Boolean $automatic_reboot = lookup('profile::unattended_upgrades::automatic_reboot', undef, undef, false),
 ) {
 
   package { 'unattended-upgrades':
