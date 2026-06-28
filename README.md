@@ -70,7 +70,6 @@ packages, InfraHouse toolkit, Puppet apply wrapper, swap, accounts, and sudo.
 | `jumphost` | SSH bastion host |
 | `mta` | Mail transfer agent |
 | `openvpn_server` | OpenVPN server |
-| `percona_server` | Percona MySQL server |
 | `teleport` | Teleport access proxy |
 | `terraformer` | Terraform runner |
 | `webserver` | Web server |
