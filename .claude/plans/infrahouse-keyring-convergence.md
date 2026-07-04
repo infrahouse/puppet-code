@@ -88,15 +88,19 @@ Test node: `jumphost-sincere-crawdad.rmdbkn.ci-cd.infrahouse.com`
 > note. `gpg --show-keys` "lists every key in the bundle" check deferred until then.
 
 **1b. Cut a release** (once the live test looks good)
-- [ ] Merge to `main` → CD publishes the `.deb` to the APT repo (dev picks it up on next Puppet run)
+- [x] Merge to `main` → CD publishes the `.deb` to the APT repo (dev picks it up on next Puppet run)
+  — PR [#278](https://github.com/infrahouse/puppet-code/pull/278) **merged**.
 
-**1c. Zero-bootstrap check via instance-refresh**
-- [ ] `instance-refresh` the dev jumphost ASG so a brand-new instance provisions from scratch
-- [ ] On the fresh instance confirm cloud-init first-boot + Puppet convergence agree; keyring valid,
-  `apt-get update` clean — i.e. Puppet bootstraps an instance from zero, not just an existing one
+**1c. Zero-bootstrap check via instance-refresh** — done 2026-07-04 on fresh instance `ip-10-1-100-168`.
+- [x] Brand-new instance provisioned from scratch off the released `.deb`
+- [x] cloud-init first-boot + Puppet convergence agree: script deployed, `Exec[…::converge]` no-op
+  (keyring already == bundle), source list byte-identical (no rewrite), no spurious apt refresh
+- [x] `keyring == published bundle` (`curl … | cmp` → converged), `apt-get update` clean
+  (`Hit … noble InRelease`, no `EXPKEYSIG`) — Puppet bootstraps an instance from zero
 
 ### Phase 2: Sandbox
-- [ ] Promote: copy the change into `environments/sandbox/modules/profile`
+- [x] Promote: copy the change into `environments/sandbox/modules/profile` (byte-identical to dev:
+  `infrahouse_repo.pp` + `files/converge-infrahouse-keyring.sh` + `base.pp` include). PR pending.
 - [ ] Cut a release (merge → CD)
 - [ ] Watch sandbox nodes across roles: keyring converges, `apt-get update` clean, no drift
 
