@@ -100,9 +100,15 @@ Test node: `jumphost-sincere-crawdad.rmdbkn.ci-cd.infrahouse.com`
 
 ### Phase 2: Sandbox
 - [x] Promote: copy the change into `environments/sandbox/modules/profile` (byte-identical to dev:
-  `infrahouse_repo.pp` + `files/converge-infrahouse-keyring.sh` + `base.pp` include). PR pending.
-- [ ] Cut a release (merge → CD)
+  `infrahouse_repo.pp` + `files/converge-infrahouse-keyring.sh` + `base.pp` include).
+- [x] Cut a release — PR [#279](https://github.com/infrahouse/puppet-code/pull/279) **merged** → CD.
 - [ ] Watch sandbox nodes across roles: keyring converges, `apt-get update` clean, no drift
+  - **Regression found on `elastic_master` (sandbox `ip-10-0-2-191`):** `profile::infrahouse_repo`
+    is in `base` (every node) and `ensure_packages`'d `ca-certificates`, which collided with
+    `profile::elastic::tls`'s **native** `package { 'ca-certificates' }` → duplicate declaration,
+    catalog failed. Fix: `base`/`infrahouse_repo` now **owns** `ca-certificates` (it's a fleet-wide
+    TLS need); removed the native block from `elastic::tls`, which just `require`s it. Dev never hit
+    it (only jumphost was tested). Applied to dev + sandbox; global gets it with the Phase-3 promo.
 
 ### Phase 3: Production (global modules)
 - [ ] Promote: move the change into global `modules/profile` (production has no env-local override)
