@@ -102,7 +102,10 @@ Test node: `jumphost-sincere-crawdad.rmdbkn.ci-cd.infrahouse.com`
 - [x] Promote: copy the change into `environments/sandbox/modules/profile` (byte-identical to dev:
   `infrahouse_repo.pp` + `files/converge-infrahouse-keyring.sh` + `base.pp` include).
 - [x] Cut a release — PR [#279](https://github.com/infrahouse/puppet-code/pull/279) **merged** → CD.
-- [ ] Watch sandbox nodes across roles: keyring converges, `apt-get update` clean, no drift
+- [x] Watch sandbox nodes across roles: keyring converges, `apt-get update` clean, no drift.
+  Verified 2026-07-04 via SSM: `elastic_master` (`i-0f554096e62f32ea0`) `puppet_exit=0` +
+  `CONVERGED_OK` (regression below fixed), and `jumphost` (`i-04c4cd399cd73d6a0`) `puppet_exit=0` +
+  `CONVERGED_OK` + apt `Hit … noble InRelease`. Source list md5 `627951c5…` on both.
   - **Regression found on `elastic_master` (sandbox `ip-10-0-2-191`):** `profile::infrahouse_repo`
     is in `base` (every node) and `ensure_packages`'d `ca-certificates`, which collided with
     `profile::elastic::tls`'s **native** `package { 'ca-certificates' }` → duplicate declaration,
@@ -111,7 +114,10 @@ Test node: `jumphost-sincere-crawdad.rmdbkn.ci-cd.infrahouse.com`
     it (only jumphost was tested). Applied to dev + sandbox; global gets it with the Phase-3 promo.
 
 ### Phase 3: Production (global modules)
-- [ ] Promote: move the change into global `modules/profile` (production has no env-local override)
+- [x] Promote: move the change into global `modules/profile` (production has no env-local override).
+  Bundled with the `elastic::tls` ca-certificates fix so prod's elastic nodes never see the broken
+  intermediate state; all 4 touched files now byte-identical across global/dev/sandbox (invariant
+  from #276 restored). PR pending.
 - [ ] Cut a release (merge → CD); deploy fleet-wide
 - [ ] Watch production; spot-check long-lived instances across services (openvpn, jumphost, etc.)
 - [ ] **GATE:** fleet trusts the current bundle before any signing-key retire happens upstream
