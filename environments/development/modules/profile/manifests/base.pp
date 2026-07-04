@@ -5,6 +5,7 @@ class profile::base () {
 
   include 'profile::ntp'
   include 'profile::repos'
+  include 'profile::infrahouse_repo'
   include 'profile::packages'
   include 'profile::infrahouse_toolkit'
   include 'profile::puppet_apply'
