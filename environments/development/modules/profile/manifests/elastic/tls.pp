@@ -93,10 +93,9 @@ class profile::elastic::tls (
     mode    => '0600',
     require => Exec[generate_node_pem],
   }
-# Let's encrypt root certificates
-  package {'ca-certificates':
-    ensure => present,
-  }
+  # Let's encrypt root certificates. The ca-certificates package (which provides
+  # the Mozilla/ISRG roots linked below) is installed fleet-wide by profile::base
+  # -> profile::infrahouse_repo; the file resources below just require it.
   file { '/etc/elasticsearch/tls/ISRG_Root_X1.crt':
     ensure  => present,
     owner   => 'elasticsearch',
