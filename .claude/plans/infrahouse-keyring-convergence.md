@@ -117,8 +117,9 @@ Test node: `jumphost-sincere-crawdad.rmdbkn.ci-cd.infrahouse.com`
 - [x] Promote: move the change into global `modules/profile` (production has no env-local override).
   Bundled with the `elastic::tls` ca-certificates fix so prod's elastic nodes never see the broken
   intermediate state; all 4 touched files now byte-identical across global/dev/sandbox (invariant
-  from #276 restored). PR pending.
-- [ ] Cut a release (merge → CD); deploy fleet-wide
+  from #276 restored).
+- [x] Cut a release — PR [#281](https://github.com/infrahouse/puppet-code/pull/281) **merged** → CD
+  deploys fleet-wide.
 - [ ] Watch production; spot-check long-lived instances across services (openvpn, jumphost, etc.)
 - [ ] **GATE:** fleet trusts the current bundle before any signing-key retire happens upstream
 
@@ -129,6 +130,18 @@ This gates the upstream rotation: `terraform-aws-debian-repo` cannot switch sign
 **before 2026-07-20**. If Phases 1–3 can't be deployed and verified with margin, a **one-off fleet
 keyring refresh** (SSM run-command / ansible) is the deadline fallback, with this convergence class
 as the durable follow-up.
+
+### Critical-path items still owned by the *upstream* repo (NOT this Puppet code)
+
+The Puppet rollout only makes the fleet **ready to trust** whatever is in the bundle. The rotation is
+**not complete** until these happen upstream — as of 2026-07-04 the live `release-noble` bundle is
+still **single-key** (only `A627B776…689AD619`, `[expires: 2026-07-20]`):
+
+- [ ] **Publish the new key into the live bundle** (`terraform-aws-debian-repo` `gpg_public_keys` →
+  `ih-s3-reprepro export`) so `release-<codename>.infrahouse.com` serves **old + new** (dual-key).
+  *Only after this does the fleet's convergence actually pick up the new key.*
+- [ ] Confirm the fleet has converged onto the dual-key bundle (the GATE above).
+- [ ] Switch signing to the new key (dual-sign → retire old), then let the old key expire harmlessly.
 
 ## Cross-references
 - Full rotation design/runbook: `terraform-aws-debian-repo/.claude/plans/gpg-key-rotation-design.local.md`
