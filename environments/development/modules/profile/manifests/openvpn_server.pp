@@ -36,6 +36,18 @@ class profile::openvpn_server (
     openvp_config_directory => $openvp_config_directory,
   }
 
+  # Terraform sets this fact from enable_google_directory_revocation, so nodes
+  # where the feature is off get nothing at all -- no script, no cron. The fact
+  # is absent on instances provisioned by a module version predating the
+  # feature, which is the backwards-compatible case. The dependencies Terraform
+  # cannot see (toolkit version, Workspace delegation) are gated at runtime
+  # inside the wrapper instead.
+  if $facts.dig('openvpn', 'google_directory_revocation') {
+    class { 'profile::openvpn_server::google_revocation_sync':
+      openvp_config_directory => $openvp_config_directory,
+    }
+  }
+
   include 'profile::openvpn_server::nat'
   include 'profile::openvpn_server::auditd'
   include 'profile::openvpn_server::cloudwatch_agent'
