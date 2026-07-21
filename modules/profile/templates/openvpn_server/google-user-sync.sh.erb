@@ -1,0 +1,146 @@
+#!/usr/bin/env bash
+# Revoke OpenVPN certificates of deactivated Google Workspace users.
+# Managed by Puppet - do not edit manually
+#
+# Puppet installs this script ONLY where the fact
+# openvpn.google_directory_revocation is true, i.e. only where Terraform was run
+# with enable_google_directory_revocation = true. Its presence on a host
+# therefore means an operator asked for this feature.
+#
+# That is why an unmet dependency is reported as a FAILURE rather than passed
+# over quietly. A silent skip would leave a host that was explicitly opted in
+# never revoking anything, with nothing anywhere to say so -- the deactivated
+# user keeps their VPN access indefinitely and no one finds out. Exiting
+# non-zero with output on stderr makes cron mail it.
+#
+# The dependencies, each checked below:
+#   1. terraform-aws-openvpn  -> writes <%= @wif_env_file %>
+#   2. infrahouse-toolkit     -> provides `ih-openvpn <%= @sync_subcommand %>`
+#   3. Google Workspace       -> domain-wide delegation authorized for the SA
+#
+# Only genuinely transient conditions stay quiet: another instance in the ASG
+# holding the cluster-wide lock, and a PKI that has not been generated yet on a
+# host still bootstrapping. Both resolve on their own by the next run.
+#
+# Silent on success, output only on real problems (suitable for cron).
+
+set -uo pipefail
+
+TAG=openvpn-google-sync
+WIF_ENV_FILE="<%= @wif_env_file %>"
+# Single source of truth for which OpenVPN installation this run acts on: it is
+# both checked here and handed to ih-openvpn below, so the two can never
+# disagree about which PKI is being reconciled.
+CONFIG_DIR="<%= @openvp_config_directory %>"
+INDEX_FILE="${CONFIG_DIR}/pki/index.txt"
+LOCK_FILE="<%= @lock_file %>"
+SYNC_SUBCOMMAND="<%= @sync_subcommand %>"
+
+# The ih-openvpn executable. Normally the bare name, resolved through PATH to
+# the packaged toolkit. $IH_OPENVPN overrides it for a single ad-hoc run, so an
+# unreleased subcommand in a checkout's virtualenv can be exercised against a
+# real instance without a Puppet run:
+#   sudo IH_OPENVPN=/home/ubuntu/code/infrahouse-toolkit/.venv/bin/ih-openvpn \
+#        <%= @openvp_config_directory %>/google-user-sync.sh
+# Set profile::openvpn_server::ih_openvpn_path in Hiera to make it stick.
+IH_OPENVPN="${IH_OPENVPN:-<%= @ih_openvpn_path %>}"
+
+# Exit status contract with `ih-openvpn ${SYNC_SUBCOMMAND}`:
+#   0             ran to completion
+#   78 EX_CONFIG  Google side not usable yet -- most often domain-wide
+#                 delegation not authorized, which is a manual step in the
+#                 Workspace admin console with no Terraform resource behind it.
+#                 Still reported as a failure: the feature is switched on and
+#                 not working, and that manual step is precisely what someone
+#                 needs to be reminded about.
+#   other         a real failure worth surfacing
+EX_CONFIG=78
+
+log_info() { logger -t "$TAG" -p auth.info "$*"; }
+log_err() { logger -t "$TAG" -p auth.err "$*"; }
+
+# The feature is switched on for this host but cannot run. Log it, put it on
+# stderr so cron mails it, and exit non-zero.
+misconfigured() {
+    log_err "misconfigured: $*"
+    echo "ERROR: openvpn google user sync is enabled on this host but cannot run: $*" >&2
+    exit 1
+}
+
+# Genuinely transient and self-resolving: nothing is wrong, this run simply has
+# nothing to do yet. Reserved for lock contention and an uninitialized PKI.
+transient() {
+    log_info "skipping: $* (will retry next run)"
+    exit 0
+}
+
+# --- Dependency 1: terraform-aws-openvpn -------------------------------------
+# wif.env carries GOOGLE_APPLICATION_CREDENTIALS, WIF_SA_EMAIL and
+# WIF_ADMIN_SUBJECT. It holds no secret: the credential config it points at is a
+# keyless external_account that sources an AWS identity from IMDS.
+[ -r "$WIF_ENV_FILE" ] \
+    || misconfigured "$WIF_ENV_FILE is absent or unreadable -- Terraform enabled the feature but did not deliver the credentials"
+
+# shellcheck disable=SC1090
+. "$WIF_ENV_FILE"
+
+for required_var in GOOGLE_APPLICATION_CREDENTIALS WIF_SA_EMAIL WIF_ADMIN_SUBJECT; do
+    [ -n "${!required_var:-}" ] || misconfigured "$required_var is not set in $WIF_ENV_FILE"
+done
+[ -r "$GOOGLE_APPLICATION_CREDENTIALS" ] \
+    || misconfigured "credential config $GOOGLE_APPLICATION_CREDENTIALS is absent or unreadable"
+
+# --- Dependency 2: infrahouse-toolkit ----------------------------------------
+# Probe for the subcommand rather than pinning a toolkit version: the check then
+# stays correct however the toolkit is versioned or backported.
+command -v "$IH_OPENVPN" >/dev/null 2>&1 \
+    || misconfigured "$IH_OPENVPN is not installed"
+"$IH_OPENVPN" "$SYNC_SUBCOMMAND" --help >/dev/null 2>&1 \
+    || misconfigured "$IH_OPENVPN has no '$SYNC_SUBCOMMAND' subcommand -- upgrade infrahouse-toolkit"
+
+# --- Local preconditions -----------------------------------------------------
+# No PKI yet means this host is still bootstrapping and Puppet has not generated
+# it. Transient by definition, and there is nothing to reconcile against.
+[ -r "$INDEX_FILE" ] || transient "$INDEX_FILE is absent (PKI not initialized yet)"
+
+# The lock lives on the shared EFS config directory, not in /var/run, so it is
+# cluster-wide. Every instance in the ASG mounts the same PKI, and two
+# concurrent `easyrsa revoke` runs would race on index.txt.
+exec 9>"$LOCK_FILE" || misconfigured "cannot open lock file $LOCK_FILE"
+flock -n 9 || transient "another instance is already running the sync (lock $LOCK_FILE held)"
+
+# --- Run ---------------------------------------------------------------------
+# --config-dir is passed explicitly: it is a group-level option, so it must come
+# before the subcommand. Without it the command would default to /etc/openvpn and
+# could reconcile a different PKI than the one checked above.
+OUTPUT=$("$IH_OPENVPN" --config-dir "$CONFIG_DIR" "$SYNC_SUBCOMMAND" 2>&1)
+STATUS=$?
+
+case "$STATUS" in
+    0)
+        # The subcommand logs each revocation itself; record the run for audit.
+        log_info "sync completed"
+        [ -n "$OUTPUT" ] && log_info "$OUTPUT"
+        ;;
+    "$EX_CONFIG")
+        # Dependency 3 outstanding. Everything on this host is in place; what is
+        # missing is the manual step -- authorizing the service account's client
+        # id for the directory scope at
+        # https://admin.google.com/ac/owl/domainwidedelegation
+        # Reported rather than skipped: until it is done the feature is switched
+        # on and silently revoking nobody.
+        log_err "$OUTPUT"
+        misconfigured "Google Workspace rejected the request; domain-wide delegation is most likely not authorized yet"
+        ;;
+    *)
+        # Every dependency is satisfied, so this is a real regression.
+        log_err "sync failed (exit $STATUS)"
+        log_err "$OUTPUT"
+        echo "ERROR: openvpn google user sync failed (exit $STATUS)" >&2
+        echo "$OUTPUT" >&2
+        exit "$STATUS"
+        ;;
+esac
+
+# OpenVPN re-reads the CRL on each new connection attempt, so a revocation takes
+# effect without restarting the service.
