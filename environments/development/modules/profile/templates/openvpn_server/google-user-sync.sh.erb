@@ -75,8 +75,8 @@ transient() {
 }
 
 # --- Dependency 1: terraform-aws-openvpn -------------------------------------
-# wif.env carries GOOGLE_APPLICATION_CREDENTIALS, WIF_SA_EMAIL and
-# WIF_ADMIN_SUBJECT. It holds no secret: the credential config it points at is a
+# wif.env carries GOOGLE_APPLICATION_CREDENTIALS, WIF_SA_EMAIL and the Workspace
+# admin subject(s). It holds no secret: the credential config it points at is a
 # keyless external_account that sources an AWS identity from IMDS.
 [ -r "$WIF_ENV_FILE" ] \
     || misconfigured "$WIF_ENV_FILE is absent or unreadable -- Terraform enabled the feature but did not deliver the credentials"
@@ -84,9 +84,17 @@ transient() {
 # shellcheck disable=SC1090
 . "$WIF_ENV_FILE"
 
-for required_var in GOOGLE_APPLICATION_CREDENTIALS WIF_SA_EMAIL WIF_ADMIN_SUBJECT; do
+for required_var in GOOGLE_APPLICATION_CREDENTIALS WIF_SA_EMAIL; do
     [ -n "${!required_var:-}" ] || misconfigured "$required_var is not set in $WIF_ENV_FILE"
 done
+# The admin subject may arrive as WIF_ADMIN_SUBJECTS (plural, comma-separated --
+# one per Google Workspace tenant, the authoritative form) or the older singular
+# WIF_ADMIN_SUBJECT (kept for back-compat, = the first tenant). The toolkit reads
+# whichever it needs and loops internally; the wrapper only requires that at
+# least one is present, so it works whether wif.env carries the old var, the new
+# var, or both during the transition.
+[ -n "${WIF_ADMIN_SUBJECTS:-}" ] || [ -n "${WIF_ADMIN_SUBJECT:-}" ] \
+    || misconfigured "neither WIF_ADMIN_SUBJECTS nor WIF_ADMIN_SUBJECT is set in $WIF_ENV_FILE"
 [ -r "$GOOGLE_APPLICATION_CREDENTIALS" ] \
     || misconfigured "credential config $GOOGLE_APPLICATION_CREDENTIALS is absent or unreadable"
 
