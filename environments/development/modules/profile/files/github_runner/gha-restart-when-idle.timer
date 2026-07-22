@@ -1,0 +1,10 @@
+[Unit]
+Description=Periodically restart the idle GitHub Actions runner to load patched libraries
+
+[Timer]
+OnBootSec=15min
+OnUnitActiveSec=15min
+Unit=gha-restart-when-idle.service
+
+[Install]
+WantedBy=timers.target
