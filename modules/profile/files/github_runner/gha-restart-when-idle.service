@@ -1,0 +1,6 @@
+[Unit]
+Description=Restart the GitHub Actions runner to load patched libraries, only when idle
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/gha-restart-when-idle.sh
