@@ -27,11 +27,14 @@
 #   custom fact (set via the cloud-init module's custom_facts), defaulting to the
 #   300 that current AMIs ship.
 #
+#   Interpolated as-is, so it makes no difference whether the fact arrives as an
+#   Integer or a String.
+#
 #   Keep it well inside the gha_runner bootstrap lifecycle hook (1200s,
 #   default_result ABANDON): a genuinely wedged lock costs this many seconds per
 #   Package resource, and the hook is not renewed during bootstrap.
 class profile::apt_lock_timeout (
-  Integer[1] $timeout = Integer(pick_default($facts['apt_lock_timeout'], 300)),
+  $timeout = pick_default($facts['apt_lock_timeout'], 300),
 ) {
 
   file { '/etc/apt/apt.conf.d/99-lock-timeout':
