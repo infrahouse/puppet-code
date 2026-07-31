@@ -65,12 +65,35 @@ class profile::github_runner (
   # per boot rather than on every Puppet apply, and is written only on success,
   # so a failed upgrade simply retries on the next apply. This applies Ubuntu
   # security updates, which do not depend on the InfraHouse repos.
+  #
+  # The retry/bounding logic lives in the script rather than in exec's
+  # tries/try_sleep because exec's timeout is per-attempt, so tries would multiply
+  # the worst case with no cumulative cap. A resource failure here ABANDONs the
+  # instance (ih-puppet exits 4/6, ih-bootstrap's ERR trap signals ABANDON), so
+  # the total must stay inside the 1200s bootstrap hook budget -- nothing renews
+  # it, since gha-lifecycle-heartbeater.sh is a no-op outside Terminating:Wait.
+  $boot_upgrade_script = '/usr/local/bin/gha-boot-security-upgrade.sh'
+  $boot_upgrade_budget = 480
+
+  file { $boot_upgrade_script:
+    ensure => file,
+    owner  => 'root',
+    group  => 'root',
+    mode   => '0755',
+    source => 'puppet:///modules/profile/github_runner/gha-boot-security-upgrade.sh',
+  }
+
   exec { 'gha-boot-security-upgrade':
-    command => 'apt-get update -qq && unattended-upgrade && touch /run/gha-boot-upgrade.done',
+    command => "${boot_upgrade_script} ${boot_upgrade_budget}",
     path    => '/usr/bin:/bin:/usr/sbin:/sbin',
     unless  => 'test -f /run/gha-boot-upgrade.done',
-    timeout => 1200,
-    require => Class['profile::unattended_upgrades'],
+    # Slightly above the script's own budget so the script always gets to exit and
+    # log why it gave up, rather than being killed mid-report by Puppet.
+    timeout => $boot_upgrade_budget + 60,
+    require => [
+      Class['profile::unattended_upgrades'],
+      File[$boot_upgrade_script],
+    ],
   }
 
 }

@@ -1,8 +1,27 @@
 # @summary: Enable unattended-upgrades fleet-wide for automatic security updates.
 #
-# Included by profile::base so every host receives security fixes. The base
-# AMI ships the relevant systemd units masked; this profile unmasks and enables
-# them and owns their configuration via Puppet.
+# Included by profile::base so every host receives security fixes. This profile
+# owns the unattended-upgrades configuration and asserts that the relevant units
+# stay installed, enabled and running.
+#
+# The units ARE masked by the time this class runs, but the masking comes from
+# cloud-init, not the AMI: terraform-aws-cloud-init's bootcmd runs
+# `systemctl stop` + `systemctl mask` on apt-daily{,-upgrade}.{service,timer} and
+# unattended-upgrades.service on every boot, before runcmd starts ih-puppet
+# (terraform-aws-cloud-init#87 -- those timers race Puppet for the dpkg lock).
+# The execs below undo it on every run, so the mask/unmask cycle repeats per boot.
+#
+# That masking predates vulnerability management and is obsolete policy. It is
+# settled that unattended-upgrades IS wanted on these hosts and that Puppet is
+# authoritative for it, so the unmask is deliberate, not a workaround. The
+# cloud-init side will stop masking (terraform-aws-cloud-init#91); until it does,
+# the execs below are what keeps unattended-upgrades running. Do not remove them
+# before that lands -- and once it does, they become no-ops and can go.
+#
+# Meanwhile there is a small bounded patching gap: bootcmd masks on every boot,
+# but runcmd/Puppet only runs at provisioning, so after a reboot of a long-lived
+# instance the units stay masked until the next scheduled puppet apply -- at most
+# ~30 min, since profile::puppet_apply runs at $m and $m+30.
 #
 # Hosts that must not be disrupted by an automatic service restart (e.g.
 # Elasticsearch nodes) keep unattended-upgrades running but drop their own
@@ -19,10 +38,22 @@ class profile::unattended_upgrades (
   # Units that drive automatic upgrades:
   #   - the timers run the periodic download + upgrade
   #   - unattended-upgrades.service applies pending upgrades on shutdown/boot
-  # The base AMI ships these masked. A masked apt-daily.service also prevents
-  # its timer from starting ("unit to trigger not loaded"), so the trigger
-  # .service units must be unmasked too even though we never run them directly.
-  # Puppet's service provider cannot unmask a unit, hence the execs.
+  #
+  # These arrive masked from cloud-init's bootcmd (see the class docstring), so
+  # the execs below are load-bearing, not defensive. Without them
+  # Service[$enabled_units] fails, because Puppet's service provider can neither
+  # start nor enable a masked unit -- and a failed resource makes ih-puppet exit
+  # 4 or 6 under --detailed-exitcodes, which trips ih-bootstrap's ERR trap and
+  # ABANDONs the instance. The service provider cannot unmask either, hence execs.
+  #
+  # A masked apt-daily.service additionally prevents its own timer from starting
+  # ("unit to trigger not loaded"), so the trigger .service units are listed here
+  # too even though we never run them directly.
+  #
+  # Consequence worth knowing: unmasking and starting the timers here means the
+  # timers are STARTED mid-catalog, so systemd evaluates their Persistent=true
+  # backlog at that moment. That is what made infrahouse-ubuntu-pro's stale timer
+  # stamps fire a catch-up unattended-upgrade during the Puppet run.
   $unmask_units = [
     'unattended-upgrades.service',
     'apt-daily.service',
