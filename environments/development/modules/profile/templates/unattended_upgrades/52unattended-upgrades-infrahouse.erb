@@ -1,7 +1,36 @@
 // Managed by Puppet (profile::unattended_upgrades). Do not edit.
 // Augments the distro default /etc/apt/apt.conf.d/50unattended-upgrades: the
-// -security origin stays enabled there; here we only pin reboot behaviour.
-// Per-host package blacklisting is done by the relevant profile via its own
-// apt.conf.d drop-in (entries append to Unattended-Upgrade::Package-Blacklist).
+// -security origin stays enabled there; here we pin reboot behaviour and skip
+// kernels when they cannot be loaded. Further per-host blacklisting is done by
+// the relevant profile via its own apt.conf.d drop-in (entries append to
+// Unattended-Upgrade::Package-Blacklist).
 
 Unattended-Upgrade::Automatic-Reboot "<%= @automatic_reboot %>";
+<% unless @automatic_reboot -%>
+
+// Automatic-Reboot is off, so a newly installed kernel can never be loaded: it
+// sits installed-but-not-running until something reboots the host, and on
+// warm-pool GitHub runners nothing ever does -- a hibernation resume is not a
+// boot. Installing it anyway costs bootstrap time against the ASG lifecycle
+// hook budget, leaves the host on the old kernel regardless (livepatch covers
+// the running one), and makes needrestart raise a debconf "Pending kernel
+// upgrade" note with no tty to render on during provisioning, which surfaces in
+// cloud-init-output.log as an alarming-looking whiptail failure.
+//
+// Observed 2026-08-01 on a sandbox runner: Exec[gha-boot-security-upgrade]
+// pulled linux-aws 6.17.0-1019 -> 7.0.0-1009, spent ~54s doing it, and the host
+// then ran 6.17.0-1019 for the rest of its life anyway.
+//
+// Kernels reach these hosts through AMI rebuilds plus ASG cycling instead.
+//
+// Deliberately gated on Automatic-Reboot rather than hardcoded: turn that on
+// for a role and kernels become upgradable again, because then something will
+// actually load them.
+Unattended-Upgrade::Package-Blacklist {
+    "linux-aws";
+    "linux-image-";
+    "linux-headers-";
+    "linux-modules-";
+    "linux-tools-";
+};
+<% end -%>
