@@ -54,46 +54,30 @@ class profile::github_runner (
   # Warm-pool runners are HIBERNATED right after provisioning, so the daily
   # unattended-upgrades timer never runs while they sit in the pool -- and a
   # hibernation resume is not a boot, so systemd boot units do not re-run on the
-  # warm->hot transition either. Apply pending security upgrades ONCE here,
-  # during provisioning, before the instance hibernates, so every runner enters
-  # the warm pool already patched. Fresh launches (driven by the ASG's
-  # max_instance_lifetime) re-run this on each new instance, which bounds how
-  # stale a pooled instance can be. In-service runners keep getting the daily
-  # timer (and profile::github_runner::service keeps that from cancelling jobs).
+  # warm->hot transition either. profile::boot_security_upgrade applies pending
+  # security upgrades ONCE here, during provisioning, before the instance
+  # hibernates, so every runner enters the warm pool already patched. Fresh
+  # launches (driven by the ASG's max_instance_lifetime) re-run it on each new
+  # instance, which bounds how stale a pooled instance can be. In-service runners
+  # keep getting the daily timer (and profile::github_runner::service keeps that
+  # from cancelling jobs).
   #
-  # The marker lives on tmpfs (/run, cleared on a real boot) so this runs once
-  # per boot rather than on every Puppet apply, and is written only on success,
-  # so a failed upgrade simply retries on the next apply. This applies Ubuntu
-  # security updates, which do not depend on the InfraHouse repos.
+  # Declared resource-like rather than through hiera because both values below
+  # follow from this role's ASG lifecycle, not from site policy:
   #
-  # The retry/bounding logic lives in the script rather than in exec's
-  # tries/try_sleep because exec's timeout is per-attempt, so tries would multiply
-  # the worst case with no cumulative cap. A resource failure here ABANDONs the
-  # instance (ih-puppet exits 4/6, ih-bootstrap's ERR trap signals ABANDON), so
-  # the total must stay inside the 1200s bootstrap hook budget -- nothing renews
-  # it, since gha-lifecycle-heartbeater.sh is a no-op outside Terminating:Wait.
-  $boot_upgrade_script = '/usr/local/bin/gha-boot-security-upgrade.sh'
-  $boot_upgrade_budget = 480
-
-  file { $boot_upgrade_script:
-    ensure => file,
-    owner  => 'root',
-    group  => 'root',
-    mode   => '0755',
-    source => 'puppet:///modules/profile/github_runner/gha-boot-security-upgrade.sh',
-  }
-
-  exec { 'gha-boot-security-upgrade':
-    command => "${boot_upgrade_script} ${boot_upgrade_budget}",
-    path    => '/usr/bin:/bin:/usr/sbin:/sbin',
-    unless  => 'test -f /run/gha-boot-upgrade.done',
-    # Slightly above the script's own budget so the script always gets to exit and
-    # log why it gave up, rather than being killed mid-report by Puppet.
-    timeout => $boot_upgrade_budget + 60,
-    require => [
-      Class['profile::unattended_upgrades'],
-      File[$boot_upgrade_script],
-    ],
+  #   budget        A resource failure here ABANDONs the instance (ih-puppet exits
+  #                 4/6, ih-bootstrap's ERR trap signals ABANDON), so the total
+  #                 must stay inside the 1200s bootstrap hook budget -- nothing
+  #                 renews it, since gha-lifecycle-heartbeater.sh is a no-op
+  #                 outside Terminating:Wait.
+  #
+  #   fail_on_error Runners are disposable: a host that could not patch should be
+  #                 abandoned and replaced, not kept. That is the opposite of the
+  #                 default, which suits stateful roles where an unpatched-but-
+  #                 running host beats no host.
+  class { 'profile::boot_security_upgrade':
+    budget        => 480,
+    fail_on_error => true,
   }
 
 }
