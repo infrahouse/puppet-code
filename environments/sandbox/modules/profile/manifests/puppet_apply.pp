@@ -24,12 +24,11 @@ class profile::puppet_apply (
   # environment `production`. A mask is the only state a package upgrade cannot
   # quietly undo.
   #
-  # The package itself is deliberately not declared here: profile::elastic::service
-  # and profile::github_runner::service already declare Package['needrestart']
-  # through different idioms, and adding a base-level Package for something a role
-  # may also declare natively is how duplicate-declaration failures happen. This
-  # only needs the unit, which puppet-agent has necessarily already installed by
-  # the time any catalog is applied.
+  # Package['puppet-agent'] is deliberately NOT declared alongside this. It
+  # arrives as an infrahouse-toolkit dependency and is necessarily installed
+  # before any catalog can be applied, so there is nothing to order against --
+  # and adding a base-level Package for something a role might also declare
+  # natively is how duplicate-declaration failures happen.
   service { 'puppet':
     ensure => stopped,
     enable => mask,
