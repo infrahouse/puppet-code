@@ -9,12 +9,12 @@ class profile::puppet_apply (
     ensure => latest
   }
 
-  # puppet-agent arrives as an infrahouse-toolkit dependency, because ih-puppet
-  # shells out to `puppet apply`. That package also enables the AGENT DAEMON,
+  # puppet-agent arrives as a puppet-code dependency, because ih-puppet applies
+  # this code with `puppet apply`. That package also enables the AGENT DAEMON,
   # which has no job on a masterless node: it wakes on its own runinterval, fails
   # to resolve the packaged default server `puppet`, logs "No more routes to ca"
   # and sleeps again -- on every host in the fleet, forever. Nothing in this
-  # repository refers to it; the cron above is what actually applies the catalog.
+  # repository refers to it; the cron below is what actually applies the catalog.
   #
   # Masked rather than merely disabled, for two reasons. A puppet-agent upgrade
   # re-enables the unit from its own postinst, so `enable => false` would decay.
@@ -25,8 +25,8 @@ class profile::puppet_apply (
   # quietly undo.
   #
   # Package['puppet-agent'] is deliberately NOT declared alongside this. It
-  # arrives as an infrahouse-toolkit dependency and is necessarily installed
-  # before any catalog can be applied, so there is nothing to order against --
+  # arrives as a puppet-code dependency, so it is installed with this very code,
+  # before any catalog can be applied: there is nothing to order against --
   # and adding a base-level Package for something a role might also declare
   # natively is how duplicate-declaration failures happen.
   service { 'puppet':
